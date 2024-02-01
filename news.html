@@ -77,8 +77,34 @@
       }
 
       .article:hover {
-        transform: scale(1.1);
-        background-color: #c815a0;
+        animation: Zanimation 1s infinite alternate;
+      }
+
+      @keyframes Zanimation {
+        0% {
+          transform: rotate(0deg) scale(1);
+          background-color: lime;
+        }
+        20% {
+          transform: rotate(45deg) scale(1.2) translateY(20px);
+          background-color: #ff00ff;
+        }
+        40% {
+          transform: rotate(-60deg) scale(0.5) translateY(-30px);
+          background-color: #00ffff;
+        }
+        60% {
+          transform: rotate(120deg) scale(1.8) translateY(-10px);
+          background-color: #ff9900;
+        }
+        80% {
+          transform: rotate(-180deg) scale(0.7) translateY(15px);
+          background-color: #9900cc;
+        }
+        100% {
+          transform: rotate(90deg) scale(1);
+          background-color: #33cc33;
+        }
       }
 
       .article img {
@@ -127,6 +153,7 @@
         height: 204.8px;
         margin-right: 15px;
         object-fit: fill;
+        animation: Zanimation 50s infinite alternate;
       }
 
       t1 {
