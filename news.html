@@ -1,2 +1,253 @@
-<head> </head>
-<body></body>
+<!DOCTYPE >
+
+<head>
+  <meta charset="UTF-8" />
+  <title>The Nova-Optic Dispatch</title>
+  <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+  <meta name="msapplication-TileColor" content="#da532c" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <style>
+    /* navigation bar styles */
+    @import url("https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@700&display=swap");
+
+    header {
+      background-color: #7118c4; /* Alien purple */
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    body {
+      background-color: #6cc417; /* Deep space black */
+    }
+
+    #logo {
+      font-size: 40px;
+      font-weight: bold;
+      color: #15a0c8; /* Extradimensional cyan */
+      font-family: "Zilla Slab", serif;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    nav li {
+      margin: 0 20px;
+    }
+
+    nav a {
+      color: #15a0c8; /* Extradimensional cyan */
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 28px;
+    }
+
+    /* main content styles */
+    main {
+      margin: 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      margin: 30px auto;
+      max-width: 90%;
+      color: #1a0a32; /* Alien purple */
+      font-family: "Zilla Slab", serif;
+    }
+
+    .article {
+      display: flex;
+      margin-bottom: 20px;
+      margin: 30px auto;
+      max-width: 90%;
+    }
+
+    .article img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      margin-right: 20px;
+      border: 5px solid #15a0c8; /* Extradimensional cyan */
+      border-radius: 50%;
+    }
+
+    .article h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      color: #1a0a32; /* Alien purple */
+      font-family: "Zilla Slab", serif;
+    }
+
+    .article p {
+      font-size: 18px;
+      line-height: 1.5;
+      margin: 0;
+      color: #1f1f1f; /* Deep space black */
+    }
+
+    /* modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(26, 10, 50, 0.8); /* Transdimensional background */
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      border-radius: 10px;
+    }
+
+    .modal-content {
+      background-color: #6cc417; /* Deep space black */
+      margin: 10% auto;
+      padding: 40px;
+      border: 2px solid #15a0c8; /* Extradimensional cyan */
+      width: 100%;
+      max-width: 850px;
+      position: relative;
+      border-radius: 10px;
+      text-align: justify;
+    }
+
+    .modal-content h2 {
+      text-align: center;
+      color: #15a0c8; /* Extradimensional cyan */
+    }
+
+    .close {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      font-size: 50px;
+      font-weight: bold;
+      color: #1a0a32; /* Alien purple */
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    /* responsive styles */
+    @media screen and (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: left;
+      }
+
+      #logo {
+        margin-bottom: 10px;
+      }
+
+      nav {
+        margin-top: 10px;
+      }
+
+      .article {
+        flex-direction: column;
+      }
+
+      .article img {
+        width: 100%;
+        height: auto;
+        margin-right: 0;
+        margin-bottom: 10px;
+      }
+
+      .modal-content {
+        margin: 20% auto;
+      }
+    }
+
+    .article {
+      cursor: pointer;
+      background-color: peru; /* Deep space black */
+
+      position: relative;
+      transition: transform 0.7s, background-color 1s;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+    }
+
+    .article:hover {
+      transform: scale(1.1);
+      background-color: #c815a0; /* Extradimensional magenta */
+      border-radius: 10px;
+    }
+
+    .modal {
+      display: none;
+    }
+
+    .article img {
+      border-top-left-radius: 5px;
+      border-bottom-left-radius: 5px;
+    }
+
+    .article {
+      border-radius: 5px;
+      border: 3px solid red;
+      border-color: #3f4739;
+    }
+
+    .modal-header-image {
+      display: block;
+      width: 100%;
+      height: 300px;
+      margin-bottom: 16px;
+      object-fit: cover;
+    }
+
+    #icon {
+      display: block;
+      width: auto;
+      height: 204.8px;
+      margin-right: 15px;
+      object-fit: fill;
+    }
+    t1 {
+      font-size: 40px;
+      font-weight: bold;
+      color: #eadeda;
+      text-align: right;
+      text-shadow: 2px 2px 4px #000000;
+      font-family: "Baumans";
+    }
+    t2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #eadeda;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="alienpaper.png" id="icon" />
+    <t1>The Nova-Optic Dispatch</t1>
+    <nav>
+      <ul>
+        <li><a href="home"> IsoHome</a></li>
+        <!-- <li><a href="legacynews.html"> Legacy Site</a></li> -->
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Latest From The Nova-Physical Resonator:</h1>
+  </main>
+</body>
