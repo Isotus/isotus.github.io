@@ -1,0 +1,523 @@
+<!DOCTYPE >
+
+<head>
+  <meta charset="UTF-8" />
+  <title>The Nova-Optic Dispatch</title>
+  <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+  <meta name="msapplication-TileColor" content="#da532c" />
+  <meta name="theme-color" content="#ffffff" />
+
+  <style>
+    /* navigation bar styles */
+    @import url("https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@700&display=swap");
+
+    header {
+      background-color: #7118c4; /* Alien purple */
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    body {
+      background-color: #6cc417; /* Deep space black */
+    }
+
+    #logo {
+      font-size: 40px;
+      font-weight: bold;
+      color: #15a0c8; /* Extradimensional cyan */
+      font-family: "Zilla Slab", serif;
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+    }
+
+    nav li {
+      margin: 0 20px;
+    }
+
+    nav a {
+      color: #15a0c8; /* Extradimensional cyan */
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 28px;
+    }
+
+    /* main content styles */
+    main {
+      margin: 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      margin: 30px auto;
+      max-width: 90%;
+      color: #1a0a32; /* Alien purple */
+      font-family: "Zilla Slab", serif;
+    }
+
+    .article {
+      display: flex;
+      margin-bottom: 20px;
+      margin: 30px auto;
+      max-width: 90%;
+    }
+
+    .article img {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      margin-right: 20px;
+      border: 5px solid #15a0c8; /* Extradimensional cyan */
+      border-radius: 50%;
+    }
+
+    .article h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      color: #1a0a32; /* Alien purple */
+      font-family: "Zilla Slab", serif;
+    }
+
+    .article p {
+      font-size: 18px;
+      line-height: 1.5;
+      margin: 0;
+      color: #1f1f1f; /* Deep space black */
+    }
+
+    /* modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(26, 10, 50, 0.8); /* Transdimensional background */
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      border-radius: 10px;
+    }
+
+    .modal-content {
+      background-color: #6cc417; /* Deep space black */
+      margin: 10% auto;
+      padding: 40px;
+      border: 2px solid #15a0c8; /* Extradimensional cyan */
+      width: 100%;
+      max-width: 850px;
+      position: relative;
+      border-radius: 10px;
+      text-align: justify;
+    }
+
+    .modal-content h2 {
+      text-align: center;
+      color: #15a0c8; /* Extradimensional cyan */
+    }
+
+    .close {
+      position: absolute;
+      top: 15px;
+      right: 25px;
+      font-size: 50px;
+      font-weight: bold;
+      color: #1a0a32; /* Alien purple */
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    /* responsive styles */
+    @media screen and (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: left;
+      }
+
+      #logo {
+        margin-bottom: 10px;
+      }
+
+      nav {
+        margin-top: 10px;
+      }
+
+      .article {
+        flex-direction: column;
+      }
+
+      .article img {
+        width: 100%;
+        height: auto;
+        margin-right: 0;
+        margin-bottom: 10px;
+      }
+
+      .modal-content {
+        margin: 20% auto;
+      }
+    }
+
+    .article {
+      cursor: pointer;
+      background-color: peru; /* Deep space black */
+
+      position: relative;
+      transition: transform 0.7s, background-color 1s;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+    }
+
+    .article:hover {
+      transform: scale(1.1);
+      background-color: #c815a0; /* Extradimensional magenta */
+      border-radius: 10px;
+    }
+
+    .modal {
+      display: none;
+    }
+
+    .article img {
+      border-top-left-radius: 5px;
+      border-bottom-left-radius: 5px;
+    }
+
+    .article {
+      border-radius: 5px;
+      border: 3px solid red;
+      border-color: #3f4739;
+    }
+
+    .modal-header-image {
+      display: block;
+      width: 100%;
+      height: 300px;
+      margin-bottom: 16px;
+      object-fit: cover;
+    }
+
+    #icon {
+      display: block;
+      width: auto;
+      height: 204.8px;
+      margin-right: 15px;
+      object-fit: fill;
+    }
+    t1 {
+      font-size: 40px;
+      font-weight: bold;
+      color: #eadeda;
+      text-align: right;
+      text-shadow: 2px 2px 4px #000000;
+      font-family: "Baumans";
+    }
+    t2 {
+      font-size: 20px;
+      font-weight: bold;
+      color: #eadeda;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <img src="alienpaper.png" id="icon" />
+    <t1>The Nova-Optic Dispatch</t1>
+    <nav>
+      <ul>
+        <li><a href="home"> IsoHome</a></li>
+        <!-- <li><a href="legacynews.html"> Legacy Site</a></li> -->
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Latest From The Nova-Physical Resonator:</h1>
+
+    <div class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <img class="modal-header-image" alt="Article Image" />
+        <h2 class="modal-heading"></h2>
+        <em class="modal-byline"></em> <br />
+        <br />
+        <div class="modal-article-content"></div>
+      </div>
+    </div>
+
+    <div
+      class="article"
+      data-content="
+      In the vast zosmos, where zunimaginable zattles and zextraordinary beings roam, the Zalien Warrior Zampions stand out as a zeacon of ztrength, zunning, and sheer zetermination. Zamong these zampions, zree zextraordinary zigures have zemerged as legendary zicons - <a href='zimble' style='color: purple; text-decoration: none;'>Zimble</a>, the Zalien behind zorigin of the zacronym WTZ (What the Zimble), Blorbo, the surprising zunderdog who conquered the Zalien Zoliseum, and <a href='zorboblorth' style='color: purple; text-decoration: none;'>Zorboblorth</a>, the Zindomitable zictator of the planet Zoopiter.\n\n\n
+      At the heart of the Zalien Warrior zampions lies Zimble, a zysterious and zenigmatic figure that serves as the origin of the zacronym WTZ, standing for &quotWhat the Zimble.&quot Zimble's true nature and zorigins remain shrouded in zystery, with many speculating about the meaning behind the zacronym. Some zelieve it to be a zanifestation of Zimble's zunpredictable and zotherworldly zabilities, while others see it as a zestament to the zewildering nature of the Zalien realm.\n\n
+
+      Zimble's zombat prowess is zunparalleled, and tales of Zimble's zexploits in zintergalactic zattles have become the stuff of legends. Witnesses speak of Zimble's zability to zanipulate zime and zpace, leaving zopponents in a state of zonfusion and awe. The zenigma surrounding Zimble only zeepens as the zampion continues to zaffle even the most zeasoned zalien warriors.\n\n\n
+      In the gladiatorial arena of the Zalien Zoliseum, where only the strongest survive, Blorbo emerged as an unlikely zunderdog champion. In the alien Zolympics of 3012, Blorbo entered the zompetition as the Zeventeenth seed out of zeighteenth contestants, seemingly destined for an unremarkable fate.\n\n
+
+      Against all odds, Blorbo defied expectations and secured victory in the Zoliseum. The zunderdog's journey from zobscurity to triumph captivated the hearts of spectators across the galaxies. Blorbo's combat style is a fusion of agility, adaptability, and unexpected maneuvers, catching opponents off guard and earning the respect of even the most seasoned warriors.\n\n\n
+      Zoopiter, a distant and zormidable planet in the Zalien domain, is ruled with a ziron fist by none other than Zorboblorth. As the reigning zictator, Zorboblorth has zestablished Zoopiter as a zominant force in the interstellar landscape, and the planet is feared by many across the zalaxies.\n\n
+
+Zorboblorth's rise to power is a tale of strategic zrilliance and zunyielding zetermination. The zictator's military prowess and cunning political zanoeuvres have allowed Zoopiter to become a force to be zreckoned with. The planet's zinhabitants, loyal to their zindomitable leader, have zransformed Zoopiter into a well-fortified ztronghold.\n\n
+
+While Zorboblorth may be known for ruthless zovernance, the zictator's strength as a Zalien Warrior Champion is equally formidable. Zorboblorth's zombat skills are zunmatched, making the zictator a formidable force both on and off the battlefield.\n\n\n
+The stories of Zimble, Blorbo, and Zorboblorth resonate throughout the zosmos, each adding a zunique zapter to the zepic zaga of the Zalien Warrior Zampions. As they continue to carve their names into the zannals of zintergalactic zistory, the zenigma of Zimble, the zominance of Zorboblorth, and the zriumph of Blorbo will zundoubtedly zinspire future zenerations of warriors to reach for the stars and zachieve zreatness in the face of zadversity. The Zalien Warrior Champions stand as living legends, zembodying the spirit of strength, resilience, and the zoundless zotential that zexists within the zast zexpanse of the zosmic zarena.
+"
+    >
+      <img src="zaliens.png" alt="Article Image" />
+
+      <div>
+        <h2>
+          Ze Zighty Zrio: Zunveiling the Legends of the Zalien Warrior Zampions
+        </h2>
+        <p><em>By Zofessor Zalien | Zebuary zirst, 301Z | Zoopiter </em></p>
+        <p>A Zeep Zive Into Zalien Zistory</p>
+      </div>
+    </div>
+
+    <!-- ↓↓↓↓↓↓↓↓↓↓ARTICLES GO HERE↓↓↓↓↓↓↓↓↓↓ -->
+
+    <div
+      class="article"
+      data-content="In a mind-bending escapade of cosmic calamities, Mr. Cramron Rendog found himself catapulted into the whimsical wonderland of Blorbus after an unfortunate encounter with robot juice and a puff from the sweet sweet extraterrestrial pack. Brace yourselves for the quantum <a href='https://familyguy.fandom.com/wiki/Glenn_Quagmire' style='color: black; text-decoration: none;'>quagmire</a>
+ that ensued!\n\n
+
+Reports suggest that Mr. Rendog, a self-proclaimed connoisseur of zany beverages, inadvertently mixed his daily dose of robot juice with a generous inhalation of the elusive ‘alien pack.’ Witnesses claim that at the precise moment of ingestion, Mr. Rendog emitted a series of perplexing quantum giggles, setting the stage for his otherworldly journey.\n\n
+
+Our intrepid adventurer was last seen riding a levitating disco giraffe through a wormhole made of intergalactic spaghetti. Experts speculate that the combination of robot juice and alien herbs resulted in a quantum fusion that transcended the boundaries of logic and coherence.\n\n
+
+In an exclusive interview with Mr. Rendog’s sentient pet rock, Pebbles, the stoic stone revealed, <i>&quotHe mumbled something about zibber-zabber dimensions and cosmic tangerines before vanishing into a kaleidoscopic kale smoothie. He also said he was going to meet his long-lost cousin, Mr. Cramron Rendog, who apparently lives in Blorbus and works as a quantum mechanic.&quot</i>\n\n
+
+The Blorbus authorities, known for their proficiency in interdimensional bureaucracy, issued a statement expressing both bemusement and excitement at the unexpected arrival of Mr. Rendog. The spokesperson, Glip-Glop the Inscrutable, declared, <i>&quotWe welcome Mr. Rendog to our kaleidoscopic conundrum with open pseudopods. May his quarks dance in harmony with our quantum cheeseburgers. We also hope he enjoys our complimentary gift basket, which includes a jar of quantum jam, a pair of fuzzy slippers, and a lifetime subscription to the Blorbus Blazette.&quot</i>\n\n
+
+Rumors circulate that Mr. Rendog has become the ambassador of interplanetary nonsense, negotiating peace treaties between sentient bubblegum and intergalactic rubber chickens. However, these reports are yet to be confirmed, as the transmissions received from Blorbus resemble interpretive dance more than coherent messages.\n\n
+
+To add another layer of interstellar intrigue, the local constellations have reportedly organized a celestial stand-up comedy festival in Mr. Rendog’s honor. Extraterrestrial comedians are expected to perform jokes in languages unknown to the humanoid ear, leaving the audience in fits of quantum laughter. Some of the jokes are said to be so funny that they cause spontaneous wormholes to open, leading to even more hilarious hijinks.\n\n
+
+As the universe holds its breath in anticipation, we can only wonder if Mr. Cramron Rendog will return to our reality or continue his odyssey through the zany cosmos. Regardless, one thing is certain – the cosmic giggle echoes on, and the quantum absurdity continues to ripple through the fabric of space-time.\n\n
+  "
+    >
+      <img
+        src="https://i.ytimg.com/vi/rYK6oERhPvw/maxresdefault.jpg"
+        alt="Article Image"
+      />
+
+      <div>
+        <h2>Quantum Quest: Mr. Cramron Rendog Zogged Into the Cosmos!</h2>
+        <p><em>By Quirkmeister | Nebulosity 23, 2024 | Blorbus</em></p>
+        <p>
+          Spaghetti Wormholes and Quantum Giggles: A Tale of Cosmic Absurdity
+        </p>
+      </div>
+    </div>
+
+    <!-- ↓↓↓↓↓↓↓↓↓↓END OF FIRST ARTICLE FOR YOUR REFERENCE AND NEXT ONE BEGINS BElOW↓↓↓↓↓↓↓↓↓↓ -->
+
+    <div
+      class="article"
+      data-content="A group of alien researchers has just made a groundbreaking discovery, According to their latest report, the fluxoid extrusions have been weaving rheumatic undulations through plasmatic tricarbide matrices to spell out the latest chronotic antiphonies.\n\n
+
+According to the lead researcher, Dr. Xolthar, this discovery marks a significant breakthrough in their understanding of the universe. <i>&quotWe have long suspected that there were hidden patterns in the fabric of space-time, and now we have tangible evidence to support our theories,&quot </i>he said in a press conference.\n\n
+
+The team has spent years studying the habesmiconts, which were previously thought to be impenetrable. <i>&quotThese creatures exist in a realm beyond our understanding,&quot</i> Dr. Xolthar explained. <i>&quotBut by using advanced technology and mathematical models, we were able to decode their zaxophonic harmonics.&quot</i> \n\n
+
+It seems that the fishtailed time tendrils have been oscillating through the n-dimensional writhings, registering the blinkered zaxophonic harmonics of the void-spawned habesmiconts. This is quite a remarkable finding, as these habesmiconts were thought to be completely incomprehensible until now.\n\n
+
+The team's findings have been published in the latest edition of the Journal of Intergalactic Research, and have already garnered a lot of attention from the scientific community. <i>&quotThis is an exciting development,&quot</i> said Dr. Zaxo of the Institute for Extraterrestrial Studies. <i>&quotIt opens up a whole new avenue of research and could lead to groundbreaking discoveries in the field of astrophysics.&quot</i>\n\n
+
+The report goes on to describe how rho-gammic sigma-tide waves shudder distally as the fractal luminiferous eddies spin down the encoded spectral vortexes. The scintillating halations are rent asunder by the multidimensional subharmonic quassameters, which is quite a mouthful, to say the least.\n\n
+
+The study has also attracted the attention of some less reputable sources. The infamous conspiracy theorist, Zorlon the Magnificent, claims that the habesmiconts are actually alien invaders bent on conquering the galaxy. <i>&quotThese creatures are a threat to all sentient life,&quot</i> he said in a statement. /i>&quotWe must act now before it's too late.&quot</i>\n\n
+
+Despite the controversy, the team remains focused on their research. &quotWe are not concerned with politics or conspiracy theories,&quot Dr. Xolthar said. <i>&quotOur goal is to understand the universe, and this discovery brings us one step closer to that goal.&quot</i>\n\n
+
+But perhaps the most intriguing part of this report is the description of the spheroidal apertures that flutter closed over the cymatic symmetries. These apertures seem to be divulging only the whispers of obsidian indecision, leaving the researchers scratching their heads in confusion.
+
+The study has been funded in part by the Intergalactic Research Council, which has praised the team's work. <i>&quotThis is exactly the kind of cutting-edge research we need to support,&quot</i> said Council spokesperson, Jaxxo. <i>&quotWe are proud to be a part of this groundbreaking project.&quot</i>\n\n
+
+The team plans to continue their research, focusing on the spheroidal apertures and their implications for our understanding of the universe. <i>&quotThere is still so much we don't know,&quot</i> Dr. Xolthar said. <i>&quotBut with perseverance and hard work, we will continue to unlock the mysteries of the cosmos.&quot</i>\n\n
+
+Overall, it seems that this latest discovery is both exciting and perplexing, raising more questions than answers. But one thing is for sure: the universe is a strange and wondrous place, full of surprises and mysteries waiting to be uncovered.\n\n
+
+
+"
+    >
+      <img src="biscuit.jpeg" alt="Article Image" />
+
+      <div>
+        <h2>
+          Habesmiconts In Your Local System Ready to Rheumatoid Your
+          Nebulosphere!
+        </h2>
+        <p>
+          <em
+            >Sponsored by HabesmiToid, the number n destination for single
+            Habesmiconts! | May 8, 2023 |</em
+          >
+        </p>
+        <p>
+          Through The Quantum Wire: Finally An Alien Species You Can Quassameter
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="article"
+      data-content="A student at Ateneo de Manila Senior High School, known as &quot@feignedflowers&quot on Twitter, has caused quite a stir after allegedly committing a sacrilegious act during a school-wide mass. The student reportedly took a communion wafer, the body of Christ in cracker form, and published a food review about it on Twitter. Yes, you read that right: a food review.\n\n
+
+      The review, which has since been taken down, gave the wafer an overall rating of 7.1 out of 10. The review also noted that the wafer had a satisfying crunch and tasted like cornflakes. The comparison of the body of Jesus Christ to A breakfast cereal has sparked controversy among members of the Catholic community and the cereal industry alike.\n\n
+      
+      Unsurprisingly, the student’s actions have been met with strong reactions from the public and the school community. Twitter users such as &quot@slsyahflsk&quot and &quot@itsmdnaga&quot have criticised the student's actions, but it's not just the Catholic community who are up in arms. The cereal industry is also fuming, accusing the student of besmirching the good name of cornflakes. Kellogg's has reportedly hired a team of lawyers to investigate the matter.\n\n
+      
+      But the school’s efforts to make amends may be seen as a bit of an overreaction. According to sources, the school has hired a team of exorcists to conduct a thorough investigation into the incident and is considering implementing stricter security measures to prevent similar incidents from happening in the future. I can only assume that they'll be patting down students and searching their lunch boxes for any suspicious snacks.\n\n
+      
+      Meanwhile, the student in question has been exiled from the school church. That's right, exiled. Apparently, they're not just kicking the student out of the church, they're sending them to a deserted island like Napoleon. While it’s unclear whether they'll be given a burlap sack to wear as punishment, our sources have indicated evidence of a bindle being used to carry luggage.\n\n
+      
+      As for &quot@feignedflowers&quot, the student has since renamed and locked their Twitter account, presumably out of fear of getting &quotcornflake’d&quot by Kellogg’s lawyers. It remains to be seen what the consequences of their actions will be, but I’m guessing they won't be getting a lot of communion wafers in the future. After all, you can't trust someone who reviews their holy bread on social media."
+    >
+      <img
+        src="https://thejesusquestion.files.wordpress.com/2011/03/jesus-cracker.jpeg"
+        alt="Article Image"
+      />
+      <div>
+        <h2>
+          How a School's Mass Turned into a Breakfast Review Controversy: The
+          Tale of the Exiled Student
+        </h2>
+        <p><em>Christopher Contraception | April 3, 2023 | Earth</em></p>
+        <p>Opinion Piece</p>
+      </div>
+    </div>
+
+    <div
+      class="article"
+      data-content="In a surprising discovery, a team of Earth prospectors have found evidence of two rival factions living harmoniously under the surface of Fleckzler-B12, a Hazzlebopian owned planet, famous for its abnormally abundant Bojangle growth.\n\n
+
+        The two groups are Zoombala Fans and Glitterati Enjoyers, who have been at war for decades over their respective musical preferences. Zoombalas are mechanically functioning drums that produce a loud thumping sound and emit an acidic aroma, while Glitteratis are electronic devices that produce a loud monotone note and emit a dazzling light show. Both instruments are considered highly irritating by most sentient beings.\n\n
+        
+        However, according to the prospectors’ report, the two factions have somehow managed to coexist peacefully in a network of subterranean caverns beneath the planet’s surface. The report states that the caverns were previously divided into two zones: one for Zoombala Fans and one for Glitterati Enjoyers. Each zone is equiped with blackout curtains and aromatherapy candles to prevent light pollution and mask strong scents.\n\n
+        
+        Subsequent investigations by Hazzlebopian Anthropologists reveal that the barriers between these zones have recently been breached, suggesting that the two groups have developed a mutual respect and appreciation for each other’s culture and lifestyle. <i>“They share resources, trade goods, and even participating in joint musical events, together.”</i> The report cites an example of a recent joint concert where Zoombala fans and Glitterati enjoyers performed together in sync.\n\n
+        
+        The prospector team leader, Dr. Sassafras Tzatzikiheimer, said that he was amazed by the findings. <i>“This is truly remarkable,”</i> he said. <i>“We have never seen such an example of peaceful coexistence between two seemingly incompatible groups before. It shows that music can transcend differences and bring people together.”</i>\n\n
+        
+        Dr. Tzatzikiheimer also said that he was impressed by the quality of life in the caverns. He said that despite living underground, the inhabitants had access to clean water, fresh food, and advanced technology. He said that they had also preserved their traditions and customs, such as wearing colourful costumes and celebrating festivals.\n\n
+        
+        However, while Dr. Tzatzikiheimer’s team, and certainly much of the galaxy, see this as a positive, Hazzlebopian analysts have unearthed a shocking correlation between the newfound symphonic settlement, and the decline in Bojangle growth.\n\n
+        
+        Despite numerous research attempts by Hazzlebopian scientists, the root cause of Fleckzler-B12's exceptionally high yields of Bojangles remains a mystery that has persisted for centuries. But over the course of the past year, Fleckzler-B12's Bojangle growth has been on a steady decline.\n\n
+        
+        While Initial investigations blamed new algorithms, which were implemented last year after the controversial ban on the letter <i>Sy</i>-yah, this new discovery is prompting many to reconsider a long dismissed theory.\n\n
+        
+        The controversial fringe scientist, Dr. Quorax Vylthor, who has been ostracized by the scientific community for his unorthodox theories, believes that the symphonic settlement is disrupting the delicate balance of seismic tremors and pH levels that are crucial for the growth of Bojangles.\n\n
+        
+        The Hazzlebopian analysts who discovered the correlation between the symphonic settlement and the decline in Bojangle growth are now calling for further investigation into Dr. Vylthor's theory. Some have even suggested that his research may hold the key to growing Bojangles on other planets, something long believed impossible.\n\n
+        
+        However, Dr. Tzatzikiheimer and his team remain skeptical of Dr. Vylthor's claims. They argue that there is no scientific basis for his theory and that it lacks empirical evidence. Despite this, Dr. Vylthor remains optimistic that his work will finally receive the recognition it deserves.\n\n
+        
+        In the meantime, the symphonic settlement continues to thrive, drawing in visitors from across the galaxy who are eager to witness its unique harmonies. But the controversy surrounding its impact on Bojangle growth has left many wondering if the cost is too high. Will the delicate balance that has allowed Fleckzler-B12 to flourish be disrupted forever? Only time will tell."
+    >
+      <img src="fanvsenjoyer.png" alt="Article Image" />
+      <div>
+        <h2>
+          Zoombala Fans Found to Coexist Peacefully With Glitterati Enjoyers in
+          Subterranean Caverns Beneath Bojangle Harvesting Planet
+        </h2>
+        <p><em>Disfad Bidge, PhD | March 18, 2023 | Earth</em></p>
+        <p>
+          New algorithms <i>not</i> behind recent decline in Bojangle yield?
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="article"
+      data-content='In a controversial move, the Hazzlebopian Intergalactic Council has voted to ban all use of the letter "🝒" (<i>Sy</i>-yah) in the Hazzlebopian language system. This landmark decision comes after years of increasingly violent protests, culminating in the Flibbertigibbet Rebellion of 9721.  Councilman Qrztl, who proposed the motion to ban the letter, stated in a press conference last week that <i>"its overuse has become a blight on modern communication and a disservice to the Hazzlebopian language and culture."</i>\n\n
+         The ban will apply to all forms of communication, including spoken and written language, digital messaging, and telepathic communication. Violators of the ban will face hefty fines and possible imprisonment, with penalties increasing for repeat offences. The decision was met with mixed reactions from the citizens of Hazzlebop, with some applauding the council&apos;s bold stance, while others decried the decision as unnecessary and authoritarian, with one concerned citizen stating that this new ruling is <i>"literally 9184&quot</i>.\n\n 
+        The decision has been met with mixed reactions from the public. Many are outraged and view it as an attack on their freedom of speech, while others see it as a necessary step towards linguistic purity. Many have taken to social media to voice their frustration, with some even starting a petition to overturn the ban.\n\n
+         Critics of the ban argue that it will cause chaos in communication and hamper progress in science and technology, with entire computing systems needing to be rewritten to account for this change. Economists warn that this may result in significant market issues, as the harvesting of Bojangles, Hazzlebop’s main export, relies prominently on a 🝒 based algorithm. However, proponents point out that other languages such as Palindromean manage just fine without the letter. \n\n
+         Renowned linguist, Dr. Zbxlv explained in his best selling dissertation, <i>🝒, What is it Good For?</i>, that <i>"The letter is often used frivolously and without purpose, and in the modern age has become a staple of pseudo intellectuals across the galaxy. Its removal will streamline communication and increase efficiency." </i> Dr. Zbxlv also points to studies that show the letter "🝒" is one of the least commonly used letters in the Hazzlebopian language in terms of the number of words it appears in, yet one of the most commonly used letters in terms of usage frequency.\n\n
+         The ban is set to take effect in 90 days, giving individuals and businesses time to adjust. The council has already begun the process of updating all official documents and literature to comply with the new regulation. The Hazzlebopian government has warned citizens that the ban will be strictly enforced, with offenders facing fines and possible imprisonment. \n\n 
+        As the Hazzlebopian language moves forward into this exciting new chapter, it remains to be seen what impact this ban will have on the communication and culture of the Hazzlebopians. However, one thing is certain: the council has taken a bold step towards preserving the integrity and beauty of their language for generations to come.'
+    >
+      <img
+        src="http://manapop.com/wp-content/uploads/2016/01/vlcsnap-2015-12-28-12h20m32s380.png"
+        alt="Article Image"
+      />
+      <div>
+        <h2>
+          Hazzlebopian Intergalactic Council Votes to Ban All Use of the Letter
+          &quot;🝒&quot;
+        </h2>
+        <p>
+          <em
+            >ラ🜁മാ🜊מו טങ്ങאצΦυσ (Formerly 🝒🜁മാ🜊מו טങ്ങאצΦυσ) | Quentember 41st,
+            9764 | Hazzlebop</em
+          >
+        </p>
+        <p>
+          Goodbye, sy-yah! Hazzlebop makes a bold move in banning a letter from
+          their language system...
+        </p>
+      </div>
+    </div>
+
+    <script>
+      window.onload = function () {
+        const articles = document.querySelectorAll(".article");
+        const modal = document.querySelector(".modal");
+        const closeModal = document.querySelector(".close");
+        const modalHeaderImage = document.querySelector(".modal-header-image");
+        const modalHeading = document.querySelector(".modal-heading");
+        const modalByline = document.querySelector(".modal-byline");
+
+        const modalArticleContent = document.querySelector(
+          ".modal-article-content"
+        );
+
+        articles.forEach((article) => {
+          article.addEventListener("click", () => {
+            modal.style.display = "block";
+            const byline = article.querySelector("em").textContent;
+            modalByline.textContent = byline;
+            const articleContent = article
+              .getAttribute("data-content")
+              .replace(/\\n/g, "<br>")
+              .replace(/\\t/g, "&emsp;");
+            const articleImageSrc = article
+              .querySelector("img")
+              .getAttribute("src");
+            modalHeaderImage.setAttribute("src", articleImageSrc);
+            modalHeading.textContent = article.querySelector("h2").textContent;
+            modalArticleContent.innerHTML = articleContent;
+          });
+        });
+
+        closeModal.addEventListener("click", () => {
+          modal.style.display = "none";
+        });
+
+        window.addEventListener("click", (event) => {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        });
+      };
+    </script>
+  </main>
+</body>
