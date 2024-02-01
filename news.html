@@ -55,9 +55,6 @@
       /* main content styles */
       main {
         margin: 20px;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
       }
 
       h1 {
@@ -68,6 +65,13 @@
         max-width: 90%;
         color: #1a0a32;
         font-family: "Zilla Slab", serif;
+      }
+
+      /* New section styles */
+      .article-section {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-around;
       }
 
       .article {
@@ -172,37 +176,30 @@
     <main>
       <h1>Latest From The Nova-Physical Resonator:</h1>
 
-      <!-- HOW TO ADD A LINE BREAK HERE PLS HELP  -->
-      <br />
-      <br />
+      <!-- New section for article previews -->
+      <section class="article-section">
+        <!-- Article 1 -->
+        <a href="article1.html" class="article">
+          <img src="article1-image.jpg" alt="Article 1 Image" />
+          <h2>Article 1 Title</h2>
+          <p>Article 1 summary goes here...</p>
+        </a>
 
-      <!-- Lol-->
-      <p><br></p>
-      
-      <!-- BR ISNT WORKING HOW TO FIX PLS AMARTYA HELP ME  -->
+        <!-- Article 2 -->
+        <a href="article2.html" class="article">
+          <img src="article2-image.jpg" alt="Article 2 Image" />
+          <h2>Article 2 Title</h2>
+          <p>Article 2 summary goes here...</p>
+        </a>
 
-      <!-- Article 1 -->
-      <a href="article1.html" class="article">
-        <img src="article1-image.jpg" alt="Article 1 Image" />
-        <h2>Article 1 Title</h2>
-        <p>Article 1 summary goes here...</p>
-      </a>
-
-      <!-- Article 2 -->
-      <a href="article2.html" class="article">
-        <img src="article2-image.jpg" alt="Article 2 Image" />
-        <h2>Article 2 Title</h2>
-        <p>Article 2 summary goes here...</p>
-      </a>
-
-      <!-- Article 3 -->
-      <a href="article3.html" class="article">
-        <img src="article3-image.jpg" alt="Article 3 Image" />
-        <h2>Article 3 Title</h2>
-        <p>Article 3 summary goes here...</p>
-      </a>
-
-      <!-- Repeat similar structure for more articles -->
+        <!-- Article 3 -->
+        <a href="article3.html" class="article">
+          <img src="article3-image.jpg" alt="Article 3 Image" />
+          <h2>Article 3 Title</h2>
+          <p>Article 3 summary goes here...</p>
+        </a>
+        <!-- Repeat similar structure for more articles -->
+      </section>
     </main>
   </body>
 </html>
