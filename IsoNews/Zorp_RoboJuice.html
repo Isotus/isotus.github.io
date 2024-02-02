@@ -10,12 +10,12 @@
         font-family: "Arial", sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #8e44ad;
-        color: #ecf0f1;
+        background-color: #8e44ad; /* Intense bright purple */
+        color: #ecf0f1; /* Light text on dark background */
       }
 
       header {
-        background-color: #5d478b;
+        background-color: #5d478b; /* Dark purple */
         color: #ecf0f1;
         text-align: center;
         padding: 15px;
@@ -36,18 +36,21 @@
       t1 {
         font-size: 1.5em;
         margin: 0;
-        color: cyan;
+        color: #ffd700; /* Gold for a pop of color */
       }
 
       main {
         padding: 20px;
+        display: flex; /* Display content side by side */
       }
 
       article {
-        background-color: #b76eaf;
+        background-color: #b76eaf; /* Lighter purple */
         border-radius: 10px;
         padding: 20px;
         box-shadow: 0 0 15px rgba(156, 107, 217, 0.2);
+        flex: 1; /* Take up remaining space */
+        margin-right: 20px; /* Add some spacing between image and text */
       }
 
       img {
@@ -67,7 +70,7 @@
       }
 
       .tags {
-        color: cyan;
+        color: #ffd700;
         font-weight: bold;
       }
 
@@ -85,8 +88,9 @@
         margin-left: 20px;
       }
 
+      /* Interactive elements styles */
       button {
-        background-color: cyan;
+        background-color: #ffd700;
         color: #8e44ad;
         padding: 10px 15px;
         border: none;
@@ -100,6 +104,7 @@
       }
     </style>
     <script>
+      // JavaScript for interactive elements (you can customize this further)
       function showAlert() {
         alert("Thank you for exploring Zorp RoboJuice!");
       }
@@ -108,7 +113,6 @@
   <body>
     <main>
       <article>
-        <img src="/photos/zorp.jpeg" alt="Zorp RoboJuice" />
         <h1>Zorp RoboJuice - The Future of Refreshment</h1>
         <p class="byline">ZorpCorp | Zebuary 2nd | Blorbus</p>
         <p class="tags">Sponsored Content</p>
@@ -129,8 +133,12 @@
           taste experience and stay energized throughout the day.
         </p>
 
+        <!-- Interactive element: button -->
         <button onclick="showAlert()">Explore Zorp RoboJuice</button>
       </article>
+
+      <!-- Image displayed to the left of the text -->
+      <img src="/photos/zorp.jpeg" alt="Zorp RoboJuice" />
     </main>
   </body>
 </html>
