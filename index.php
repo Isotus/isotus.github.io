@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="en">
 <title>Balls</title>
 <main>
   <a href="https://www.youtube.com/watch?v=sqpHVk8HzP4&t=28s"><h3>Balls</h3></a>
@@ -7,3 +9,4 @@
     <source src="znome_zuzic.mp3" type="audio/mpeg" />
   </audio>
 </main>
+</html>
