@@ -8,11 +8,9 @@
     </audio>
 
     <script>
-      // JavaScript to randomly select an audio source
       document.addEventListener("DOMContentLoaded", function () {
         var audioElement = document.getElementById("backgroundAudio");
 
-        // Randomly choose between zoblin_music.mp3 and znome_music.mp3
         var randomNumber = Math.random();
         if (randomNumber < 0.5) {
           audioElement.src = "/audio/zoblin_music.mp3";
@@ -20,7 +18,8 @@
           audioElement.src = "/audio/znome_music.mp3";
         }
 
-        // Load and play the selected audio
+        audioElement.volume = 0.5;
+
         audioElement.load();
         audioElement.play();
       });
