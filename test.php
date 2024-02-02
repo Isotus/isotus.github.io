@@ -3,5 +3,5 @@ $dir = "/photos/";
 
 $a = scandir($dir);
 
-echo $a;
+print_r ($a);
 ?>
