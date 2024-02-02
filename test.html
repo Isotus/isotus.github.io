@@ -6,32 +6,9 @@
     <title>File List</title>
 </head>
 <body>
-    <h2>Files in "photos" Folderd:</h2>
 
-    <ul id="fileList">
-        <!-- Files will be listed here dynamically -->
-    </ul>
 
-    <script>
-        // Define the folder path
-        var folderPath = 'photos';
-
-        // Function to fetch files and populate the list
-        function fetchFiles() {
-            fetch(folderPath)
-                .then(response => response.json())
-                .then(fileList => {
-                    var fileListHtml = fileList.map(function(file) {
-                        return '<li>' + file + '</li>';
-                    }).join('');
-                    document.getElementById('fileList').innerHTML = fileListHtml;
-                })
-                .catch(error => console.error('Error fetching files:', error));
-        }
-
-        // Call the function to fetch files when the page loads
-        fetchFiles();
-    </script>
+    
 </body>
 </html>
 </html>
