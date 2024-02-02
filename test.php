@@ -3,5 +3,5 @@ $dir = "/photos/";
 
 $a = scandir($dir);
 
-print_r ($a);
+print_r ("<img scr'+$a+'/>");
 ?>
