@@ -3,5 +3,10 @@ $dir = "/photos/";
 
 $a = scandir($dir);
 
-print_r ("<img scr='"+$a+"'/>");
+$arrayLength = count($a);
+$i = 0
+for($i = 0; $i < $arrayLength; $i++){
+  print_r ("<img scr='"+$a[$i]+"'/>");
+}
+
 ?>
