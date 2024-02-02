@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File List</title>
+</head>
+<body>
+    <h2>Files in Folder:</h2>
+
+    <ul id="fileList">
+        <!-- Files will be listed here dynamically -->
+    </ul>
+
+    <script>
+        // Define the folder path
+        var folderPath = '/photos';
+
+        // Function to fetch files and populate the list
+        function fetchFiles() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        var fileList = JSON.parse(xhr.responseText);
+                        var fileListHtml = fileList.map(function(file) {
+                            return '<li>' + file + '</li>';
+                        }).join('');
+                        document.getElementById('fileList').innerHTML = fileListHtml;
+                    } else {
+                        console.error('Failed to fetch files: ' + xhr.status);
+                    }
+                }
+            };
+            xhr.open('GET', 'list_files.php?folder=' + encodeURIComponent(folderPath), true);
+            xhr.send();
+        }
+
+        // Call the function to fetch files when the page loads
+        fetchFiles();
+    </script>
+</body>
+</html>
