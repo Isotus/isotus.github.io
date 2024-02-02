@@ -8,5 +8,14 @@
   <audio controls autoplay hidden>
     <source src="znome_zuzic.mp3" type="audio/mpeg" />
   </audio>
+
+  <?php
+    $dir = "/photos/";
+    $array = array();
+
+    $array = $array + scandir($dir);
+    print_r ($array)
+    ?>
+    
 </main>
 </html>
