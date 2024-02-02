@@ -1,7 +1,18 @@
-<?php
-$dir = "/photos/";
-$array = array();
+<!DOCTYPE html>
+<title>IsoNews</title>
+<html lang="en">
+  <head>
 
-$array = $array + scandir($dir);
-print_r ($array)
-?>
+  </head>
+
+  <body>
+    <?php
+    $dir = "/photos/";
+    $array = array();
+
+    $array = $array + scandir($dir);
+    print_r ($array)
+    ?>
+    
+  </body>
+</html>
