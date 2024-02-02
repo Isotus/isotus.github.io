@@ -27,7 +27,9 @@
                             return '<li>' + file + '</li>';
                         }).join('');
                         document.getElementById('fileList').innerHTML = fileListHtml;
+                        print("bang")
                     } else {
+                        print("boom!")
                         console.error('Failed to fetch files: ' + xhr.status);
                     }
                 }
