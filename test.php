@@ -1,10 +1,7 @@
 <?php
 $dir = "/photos/";
+$array = array();
 
-$a = scandir($dir);
-
-$arrayLength = count($a);
-for($i = 0; $i < $arrayLength; $i++){
-  echo "<img src='" . $a[$i] . "'/>";
-}
+$array = $array + scandir($dir);
+print_r ($array)
 ?>
