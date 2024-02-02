@@ -81,6 +81,65 @@
         animation: Zanimation 1s infinite alternate;
       }
 
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg) scale(1.1);
+          animation-timing-function: ease-in;
+        }
+        2.5% {
+          animation-timing-function: linear;
+          background-color: #f5816d; /* heating up */
+          opacity: 0.4; /* reduced opacity */
+          /* adjust box-shadow values for desired effect */
+          box-shadow: 0 0 15px 25px rgba(245, 129, 109, 0.2); /* glow effect with fire red */
+        }
+        5% {
+          background-color: #ff2400; /* fire red */
+          box-shadow: 0 0 25px 35px rgba(255, 36, 0, 0.4); /* glow effect with fire red */
+          opacity: 0.6; /* reduced opacity */
+        }
+        7.5% {
+          background-color: #ff4c00; /* fire orange */
+          box-shadow: 0 0 50px 45px rgba(255, 76, 0, 0.6); /* glow effect with fire orange */
+          opacity: 0.8; /* reduced opacity */
+        }
+        10% {
+          background-color: #ff9600; /* fire yellow */
+          box-shadow: 0 0 75px 55px rgba(255, 150, 0, 0.8); /* glow effect with fire yellow */
+          opacity: 0.9; /* reduced opacity */
+        }
+
+        50% {
+          background-color: #fff8dc; /* fire white */
+          box-shadow: 0 0 100px 55px rgba(255, 248, 220, 1); /* glow effect with fire white */
+          opacity: 1; /* reduced opacity */
+          animation-timing-function: ease-out;
+        }
+
+        100% {
+          background-color: #fff8dc; /* fire white */
+          box-shadow: 0 0 100px 50px rgba(255, 248, 220, 1); /* glow effect with fire white */
+          opacity: 1; /* reduced opacity */
+          transform: rotate(3600000deg);
+          animation-timing-function: ease-out;
+        }
+      }
+
+      /* when the nav link is hovered over, play the animation and gradually increase the speed */
+      .nav-link1:hover {
+        animation-play-state: running;
+        animation-timing-function: linear;
+        animation-duration: 300s;
+      }
+
+      /* when the cursor stops hovering, gradually slow down the animation to a stop */
+      .nav-link1:not(:hover) {
+        animation-play-state: paused;
+        transition-delay: 0.5s; /* delay the transition by 0.5s */
+        transition-duration: 2s;
+        transition-timing-function: ease-out;
+      }
+
       @keyframes Zanimation {
         0% {
           transform: rotate(0deg) scale(1);
@@ -155,6 +214,10 @@
         margin-right: 15px;
         object-fit: fill;
         animation: Zanimation 50s infinite alternate;
+      }
+
+      #icon:hover {
+        animation: spin 100s infinite alternate;
       }
 
       t1 {
