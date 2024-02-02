@@ -6,7 +6,7 @@
     <title>File List</title>
 </head>
 <body>
-    <h2>Files in "photos" Folder:</h2>
+    <h2>Files in "photos" Folderd:</h2>
 
     <ul id="fileList">
         <!-- Files will be listed here dynamically -->
@@ -14,32 +14,24 @@
 
     <script>
         // Define the folder path
-        var folderPath = "/photos/";
+        var folderPath = 'photos';
 
         // Function to fetch files and populate the list
         function fetchFiles() {
-            var xhr = new XMLHttpRequest();
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        var fileList = JSON.parse(xhr.responseText);
-                        var fileListHtml = fileList.map(function(file) {
-                            return '<li>' + file + '</li>';
-                        }).join('');
-                        document.getElementById('fileList').innerHTML = fileListHtml;
-                        print("bang")
-                    } else {
-                        print("boom!")
-                        console.error('Failed to fetch files: ' + xhr.status);
-                    }
-                }
-            };
-            xhr.open('GET', 'list_files.php?folder=' + encodeURIComponent(folderPath), true);
-            xhr.send();
+            fetch(folderPath)
+                .then(response => response.json())
+                .then(fileList => {
+                    var fileListHtml = fileList.map(function(file) {
+                        return '<li>' + file + '</li>';
+                    }).join('');
+                    document.getElementById('fileList').innerHTML = fileListHtml;
+                })
+                .catch(error => console.error('Error fetching files:', error));
         }
 
         // Call the function to fetch files when the page loads
         fetchFiles();
     </script>
 </body>
+</html>
 </html>
