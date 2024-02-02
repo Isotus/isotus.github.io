@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+<style>
+* {
+  box-sizing: border-box;
+}
+
+/* Create two equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 50%;
+  padding: 10px;
+  height: 300px; /* Should be removed. Only for demonstration */
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+</style>
+</head>
+<body>
+
+
+<div class="row">
+    <div class="column"><p>
+          Introducing Zorp RoboJuice - the ultimate blend of innovation and
+          taste. Crafted by ZorpCorp, this revolutionary beverage is designed to
+          enhance your daily life with a burst of energy and flavor.
+        </p>
+        <p>Features:</p>
+        <ul>
+          <li>Powered by advanced robotics for precision mixing</li>
+          <li>Nutrient-rich ingredients for a healthy boost</li>
+          <li>Available in a variety of exciting flavors</li>
+          <li>Convenient packaging for on-the-go refreshment</li>
+        </ul>
+        <p>
+          Embrace the future of refreshment with Zorp RoboJuice. Elevate your
+          taste experience and stay energized throughout the day.
+        </p> </div>
+    <div class="column"><a href="photos/zorp.jpeg"></a></div>
+  </div>
+
+</body>
+</html>
