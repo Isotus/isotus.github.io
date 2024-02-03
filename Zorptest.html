@@ -2,30 +2,104 @@
 <html lang="en">
     <head>
 <style>
-* {
-  box-sizing: border-box;
-}
+<style>
+      body {
+        font-family: "Arial", sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #8e44ad; /* Intense bright purple */
+        color: #ecf0f1; /* Light text on dark background */
+      }
 
-/* Create two equal columns that floats next to each other */
-.column {
-  float: left;
-  width: 50%;
-  padding: 10px;
-  height: 300px; /* Should be removed. Only for demonstration */
-}
+      header {
+        background-color: #5d478b; /* Dark purple */
+        color: #ecf0f1;
+        text-align: center;
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+      }
 
-/* Clear floats after the columns */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
-}
+      #back-button {
+        text-decoration: none;
+      }
 
-img {
-        max-width: 50%;
+      #icon {
+        width: 50px;
+        height: 50px;
+        margin: 0 10px;
+      }
+
+      t1 {
+        font-size: 1.5em;
+        margin: 0;
+        color: #ffd700; /* Gold for a pop of color */
+      }
+
+      main {
+        padding: 20px;
+        display: flex; /* Display content side by side */
+      }
+
+      article {
+        background-color: #b76eaf; /* Lighter purple */
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 15px rgba(156, 107, 217, 0.2);
+        flex: 1; /* Take up remaining space */
+        margin-right: 20px; /* Add some spacing between image and text */
+      }
+
+      img {
+        max-width: 100%;
         border-radius: 5px;
         margin-bottom: 20px;
       }
+
+      h1 {
+        color: #5d478b;
+      }
+
+      .byline {
+        color: #b3a1c7;
+        font-size: 0.9em;
+        margin: 5px 0;
+      }
+
+      .tags {
+        color: #ffd700;
+        font-weight: bold;
+      }
+
+      p {
+        line-height: 1.6;
+      }
+
+      ul {
+        list-style-type: disc;
+        color: #ecf0f1;
+        margin-bottom: 20px;
+      }
+
+      li {
+        margin-left: 20px;
+      }
+
+      /* Interactive elements styles */
+      button {
+        background-color: #ffd700;
+        color: #8e44ad;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #5d478b;
+        color: #ecf0f1;
+      }
+    </style>
 </style>
 </head>
 <body>
