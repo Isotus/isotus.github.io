@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-      <title>Zorp RoboJuice</title>
-
-<style>
+  <head>
+    <style>
       body {
         font-family: "Arial", sans-serif;
         margin: 0;
@@ -39,7 +37,9 @@
 
       main {
         padding: 20px;
-        display: flex; /* Display content side by side */
+        display: flex;
+        flex-direction: column; /* Adjusted to column layout */
+        align-items: center; /* Center content horizontally */
       }
 
       article {
@@ -47,21 +47,22 @@
         border-radius: 10px;
         padding: 20px;
         box-shadow: 0 0 15px rgba(156, 107, 217, 0.2);
-        flex: 1; /* Take up remaining space */
-        margin-right: 20px; /* Add some spacing between image and text */
+        flex: 1;
+        margin-bottom: 20px; /* Added space between articles */
+        width: 100%; /* Ensure the article takes the full width */
       }
 
       img {
         max-width: 50%;
-        max-height: 300px;
+        max-height: 100px;
         border-radius: 5px;
         margin-bottom: 20px;
         animation: slide 4s infinite;
       }
 
-
       h1 {
         color: #5d478b;
+        text-align: center; /* Center the h1 text */
       }
 
       .byline {
@@ -77,12 +78,14 @@
 
       p {
         line-height: 1.6;
+        text-align: center; /* Center the paragraph text */
       }
 
       ul {
         list-style-type: disc;
         color: #ecf0f1;
         margin-bottom: 20px;
+        text-align: left; /* Adjusted to left-align the list items */
       }
 
       li {
@@ -104,32 +107,37 @@
         color: #ecf0f1;
       }
     </style>
-</style>
-</head>
-<body>
-  <h1>Zorp RoboJuice - The Future of Refreshment</h1>
-        <p class="byline">ZorpCorp | Zebuary 2nd | Blorbus</p>
-        <p class="tags">Sponsored Content</p>
-        <p>
-          Introducing Zorp RoboJuice - the ultimate blend of innovation and
-          taste. <br>Crafted by ZorpCorp, this revolutionary beverage is designed to
-          enhance your daily life with a burst of energy and flavor.
-        </p>
+  </head>
+  <body>
+    <h1>Zorp RoboJuice - The Future of Refreshment</h1>
+    <p class="byline">ZorpCorp | Zebuary 2nd | Blorbus</p>
+    <p class="tags">Sponsored Content</p>
+    <p>
+      Introducing Zorp RoboJuice - the ultimate blend of innovation and taste.
+      <br />Crafted by ZorpCorp, this revolutionary beverage is designed to
+      enhance your daily life with a burst of energy and flavor.
+    </p>
 
-        <marquee behavior="scroll" direction="left" scrollamount="50">
-          <img src="photos/zorp.jpeg" alt="Zorp RoboJuice"><img src="photos/zorp2.jpeg" alt="Zorp RoboJuice"><img src="photos/zorp.jpeg" alt="Zorp RoboJuice">
-      </marquee>
-        </p>
-        <p>Features:</p>
-        <ul>
-          <li>Harvested from the rings of Zeeble Zorp by our team of expert criminals</li>
-          <li>Mind-zoggling effects  </li>
-          <li></li>
-          <li>Convenient packaging for on-the-go refreshment</li>
-        </ul>
-        <p>
-          Embrace the future of refreshment with Zorp RoboJuice. Elevate your
-          taste experience and stay energized throughout the day.
+    <marquee behavior="scroll" direction="left" scrollamount="50">
+      <img src="photos/zorp.jpeg" alt="Zorp RoboJuice" /><img
+        src="photos/zorp2.jpeg"
+        alt="Zorp RoboJuice"
+      /><img src="photos/zorp.jpeg" alt="Zorp RoboJuice" />
+    </marquee>
 
-</body>
+    <p>Features:</p>
+    <ul>
+      <li>
+        Harvested from the rings of Zeeble Zorp by our team of expert criminals
+      </li>
+      <li>Mind-zoggling effects including ..??? zi zorgot</li>
+      <li></li>
+      <li>Convenient packaging for on-the-go refreshment</li>
+    </ul>
+
+    <p>
+      Embrace the future of refreshment with Zorp RoboJuice. Elevate your taste
+      experience and stay energized throughout the day.
+    </p>
+  </body>
 </html>
