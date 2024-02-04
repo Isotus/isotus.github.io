@@ -5,6 +5,10 @@
     <link rel="icon" href="/photos/zorpjuice.png" />
 
     <style>
+    body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
       body {
         font-family: "Arial", sans-serif;
         margin: 0;
@@ -51,8 +55,12 @@
         padding: 20px;
         box-shadow: 0 0 15px rgba(156, 107, 217, 0.2);
         flex: 1;
+          margin: auto;
+
         margin-bottom: 20px; /* Added space between articles */
-        width: 100%; /* Ensure the article takes the full width */
+               
+
+        width: 90%; /* Ensure the article takes the full width */
       }
 
       img {
@@ -60,6 +68,7 @@
         max-height: 300px;
         border-radius: 5px;
         margin-bottom: 20px;
+        animation: slide 4s infinite;
       }
 
       h1 {
