@@ -112,38 +112,8 @@
       }
     </style>
     
-    <script>
-  function showAlert() {
-    alert("Thank you for exploring Zorp RoboJuice!");
-  }
-
-document.addEventListener("DOMContentLoaded", function () {
-    var audioElement = document.getElementById("backgroundAudio");
-
-    var randomNumber = Math.random();
-
-    if (randomNumber < 0.5) {
-      audioElement.src = "/audio/purple_juice_jingle.mp3";
-    } else if (randomNumber < 0.9) {
-      audioElement.src = "/audio/Robojuice_Showdown.mp3";
-    } else {
-      audioElement.src = "/audio/hi_my_name_is_kanye_winstead.mp3";
-    }
-
-    audioElement.volume = 0.5;
-
-    audioElement.load();
-    audioElement.play();
-  });
-</script>
-
-<audio controls autoplay hidden loop id="backgroundAudio">
-  <source src="/audio/purple_juice_jingle.mp3" type="audio/mp3" />
-  <source src="/audio/Robojuice_Showdown.mp3" type="audio/mp3" />
-  <source src="/audio/hi_my_name_is_kanye_winstead.mp3" type="audio/mp3" />
-</audio>
+  
 </head>
-
 
 
   <body>
