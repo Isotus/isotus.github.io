@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Connections 0</title>
+    <title>Conncets 0</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
@@ -165,8 +165,8 @@
     </div>
 
     <script>
-      const puzzleTitle = "Connections 0";
-      const puzzleHint = "you can use lowercase letters now...";
+      const puzzleTitle = "Connects 0";
+      const puzzleHint = "my first puzzle...";
       const rawCategoryInput = `
     mythological creatures: sphinx, siren, gnome, minotaur
     architectural features of the notre-dame: pillar, spire, gargoyle, vault
@@ -344,10 +344,10 @@
         );
         let currentNum = match ? parseInt(match[1], 10) : 0;
         document.getElementById("nav-prev").onclick = function () {
-          window.location.href = `/connects/${currentNum - 1}.html`;
+          window.location.href = `/connects/${currentNum - 1}`;
         };
         document.getElementById("nav-next").onclick = function () {
-          window.location.href = `/connects/${currentNum + 1}.html`;
+          window.location.href = `/connects/${currentNum + 1}`;
         };
       })();
 
