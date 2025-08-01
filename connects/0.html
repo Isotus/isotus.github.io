@@ -156,10 +156,10 @@
       const puzzleTitle = "Connections 0";
       const puzzleHint = "you can use lowercase letters now...";
       const rawCategoryInput = `
-      Instruments: a, b, c, d
-      Fruits: 1, 2, 3, 4
-      Weather: e, f, g, h
-      Computer Parts: 5, 6, 7, 8
+      Musical Terms: pitch (as in:), scale, A sharp, A flat
+      Real estate terms: pitches, sale, flats
+      Baseball terms: 2pitch, a flat, scale, Sharp
+      Parkour terms: pitch, 2scale, flat, sharp
     `;
 
       document.getElementById("game-title").textContent = puzzleTitle;
@@ -172,7 +172,10 @@
           const [title, wordsStr] = line.split(":");
           return {
             title: title.trim(),
-            words: wordsStr.split(",").map((w) => w.trim()),
+            words: wordsStr
+              .split(",")
+              .map((w) => w.trim())
+              .slice(0, 4),
           };
         });
 
@@ -240,7 +243,7 @@
           img.style.width = "0px";
           img.style.height = "0px";
           document.body.appendChild(img);
-          e.dataTransfer.setDragImage(img, 0, 0);
+          e.dataTransfer.setDragImage(new Image(), 0, 0);
           setTimeout(() => document.body.removeChild(img), 0);
         }
         e.dataTransfer.effectAllowed = "move";
