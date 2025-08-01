@@ -344,11 +344,9 @@
         );
         let currentNum = match ? parseInt(match[1], 10) : 0;
         document.getElementById("nav-prev").onclick = function () {
-          // If on 0, go to -1; otherwise decrement
-          window.location.href = `/connects/${currentNum === 0 ? -1 : currentNum - 1}`;
+          window.location.href = `/connects/${currentNum - 1}`;
         };
         document.getElementById("nav-next").onclick = function () {
-          // If on -1, go to 0; otherwise increment
           window.location.href = `/connects/${currentNum === -1 ? 0 : currentNum + 1}`;
         };
       })();
@@ -356,5 +354,7 @@
       renderGrid();
     </script>
   </body>
+</html>
+</html>
 </html>
 </html>
