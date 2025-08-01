@@ -58,6 +58,21 @@
         right: 0;
         z-index: 10;
       }
+      .nav-btn {
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: var(--border-radius);
+        padding: 0.5rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .nav-btn:disabled {
+        background: var(--button-disabled-bg);
+        cursor: not-allowed;
+      }
       #main-content {
         width: 100%;
         max-width: 500px;
@@ -166,7 +181,7 @@
   </head>
   <body>
     <div class="nav-bar">
-      <button class="nav-btn" id="prev-btn" disabled>Previous</button>
+      <button class="nav-btn" id="prev-btn">Previous</button>
       <span>Connects -1</span>
       <button class="nav-btn" id="next-btn">Next</button>
     </div>
@@ -357,7 +372,7 @@
       document
         .getElementById("prev-btn")
         .addEventListener("click", function () {
-          window.location.href = "-2.html";
+          // No previous page, so do nothing or stay on this page
         });
       document
         .getElementById("next-btn")
