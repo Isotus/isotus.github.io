@@ -154,7 +154,8 @@
           margin-bottom: 1.5rem;
         "
       >
-        <button id="nav-to-0" aria-label="Return to 0">return to 0</button>
+        <button id="navdown" aria-label="-1">-1</button>
+        <button id="navup" aria-label="+1">+1</button>
       </div>
       <h1 id="game-title"></h1>
       <p id="game-description"></p>
@@ -337,7 +338,11 @@
         submitButton.disabled = true;
       });
 
-      document.getElementById("nav-to-0").onclick = function () {
+           // nav to other puzzles
+      document.getElementById("navdown").onclick = function () {
+        window.location.href = "/connects/-2";
+      };
+      document.getElementById("navup").onclick = function () {
         window.location.href = "/connects/0";
       };
 
