@@ -1,89 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Word Connections</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg-color: #f0f2f5;
-      --text-color: #1c1e21;
-      --word-bg: #e4e6eb;
-      --word-bg-hover: #d8dbdf;
-      --selected-bg: #4b88e2;
-      --selected-text: #ffffff;
-      --correct-bg-1: #a5d6a7;
-      --correct-bg-2: #81d4fa;
-      --correct-bg-3: #ffd54f;
-      --correct-bg-4: #ce93d8;
-      --incorrect-bg: #ef9a9a;
-      --button-bg: #1877f2;
-      --button-text: #ffffff;
-      --button-disabled-bg: #bcc0c4;
-      --border-radius: 8px;
-    }
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 1rem;
-    }
-    #game-container {
-      width: 100%;
-      max-width: 500px;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    p {
-      font-size: 1rem;
-      margin-bottom: 1rem;
-      color: #606770;
-    }
-    #feedback-area {
-      min-height: 24px;
-      margin-bottom: 1rem;
-      font-weight: 600;
-      transition: opacity 0.3s ease;
-    }
-    #word-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.75rem;
-      margin-bottom: 1.5rem;
-    }
-    .word, .solved-box {
-      background-color: var(--word-bg);
-      padding: 1rem;
-      border-radius: var(--border-radius);
-      font-weight: 600;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      min-height: 40px;
-      font-size: clamp(0.7rem, 3.5vw, 1rem);
-      transition: all 0.2s ease-in-out;
-    }
-    .word:not(.selected):hover {
-      transform: translateY(-2px);
-      background-color: var(--word-bg-hover);
-    }
-    .word.selected {
-      background-color: var(--selected-bg);
-      color: var(--selected-text);
-      transform: scale(1.05);
-    }
-    .word.incorrect {
-      background-color: var(--incorrec
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Word Connections</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #f0f2f5;
+        --text-color: #1c1e21;
+        --word-bg: #e4e6eb;
+        --word-bg-hover: #d8dbdf;
+        --selected-bg: #4b88e2;
+        --selected-text: #ffffff;
+        --correct-bg-1: #a5d6a7;
+        --correct-bg-2: #81d4fa;
+        --correct-bg-3: #ffd54f;
+        --correct-bg-4: #ce93d8;
+        --incorrect-bg: #ef9a9a;
+        --button-bg: #1877f2;
+        --button-text: #ffffff;
+        --button-disabled-bg: #bcc0c4;
+        --border-radius: 8px;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 1rem;
+      }
+      #game-container {
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: #606770;
+      }
+      #feedback-area {
+        min-height: 24px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        transition: opacity 0.3s ease;
+      }
+      #word-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .word,
+      .solved-box {
+        background-color: var(--word-bg);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 40px;
+        font-size: clamp(0.7rem, 3.5vw, 1rem);
+        transition: all 0.2s ease-in-out;
+      }
+      .word:not(.selected):hover {
+        transform: translateY(-2px);
+        background-color: var(--word-bg-hover);
+      }
+      .word.selected {
+        background-color: var(--selected-bg);
+        color: var(--selected-text);
+        transform: scale(1.05);
+      }
+      .word.incorrect {
+        background-color: var(--incorrect-bg);
+        animation: shake 0.5s;
+      }
+      .solved-box {
+        grid-column: span 4;
+        flex-direction: column;
+        cursor: default;
+      }
+      .dragging {
+        opacity: 0.5;
+        transform: scale(1.1);
+      }
+      #submit-button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--border-radius);
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        cursor: pointer;
+      }
+      #submit-button:disabled {
+        background-color: var(--button-disabled-bg);
+        cursor: not-allowed;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        50% {
+          transform: translateX(5px);
+        }
+        75% {
+          transform: translateX(-5px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <h1>Connections</h1>
+      <p>Find groups of four words that share something in common.</p>
+      <div id="feedback-area"></div>
+      <div id="word-grid"></div>
+      <button id="submit-button" disabled>Select 4 Words</button>
+    </div>
+
+    <script>
+      const wordGrid = document.getElementById("word-grid");
+      const submitButton = document.getElementById("submit-button");
+      const feedbackArea = document.getElementById("feedback-area");
+
+      let words = [
+        "GUITAR",
+        "VIOLIN",
+        "PIANO",
+        "DRUMS",
+        "APPLE",
+        "ORANGE",
+        "BANANA",
+        "GRAPE",
+        "WIND",
+        "RAIN",
+        "HAIL",
+        "SNOW",
+        "MONITOR",
+        "MOUSE",
+        "KEYBOARD",
+        "CPU",
+      ];
+
+      const categories = [
+        { title: "Instruments", words: ["GUITAR", "VIOLIN", "PIANO", "DRUMS"] },
+        { title: "Fruits", words: ["APPLE", "ORANGE", "BANANA", "GRAPE"] },
+        { title: "Weather", words: ["WIND", "RAIN", "HAIL", "SNOW"] },
+        {
+          title: "Computer Parts",
+          words: ["MONITOR", "MOUSE", "KEYBOARD", "CPU"],
+        },
+      ];
+
+      const colors = [
+        "--correct-bg-1",
+        "--correct-bg-2",
+        "--correct-bg-3",
+        "--correct-bg-4",
+      ];
+      const solvedGroups = [];
+
+      function renderGrid() {
+        wordGrid.innerHTML = "";
+        solvedGroups.forEach((group, idx) => {
+          const box = document.createElement("div");
+          box.className = "solved-box";
+          box.style.backgroundColor = `var(${colors[idx]})`;
+          box.innerHTML = `<div class="category-name"><strong>${
+            group.title
+          }</strong></div><div class="words">${group.words.join(", ")}</div>`;
+          wordGrid.appendChild(box);
+        });
+
+        words.forEach((word, index) => {
+          const div = document.createElement("div");
+          div.className = "word";
+          div.draggable = true;
+          div.textContent = word;
+          div.dataset.index = index;
+
+          div.addEventListener("click", () => toggleWord(div));
+          div.addEventListener("dragstart", handleDragStart);
+          div.addEventListener("dragover", handleDragOver);
+          div.addEventListener("drop", handleDrop);
+          div.addEventListener("dragend", handleDragEnd);
+
+          wordGrid.appendChild(div);
+        });
+      }
+
+      function toggleWord(el) {
+        el.classList.toggle("selected");
+        const selected = document.querySelectorAll(".word.selected");
+        submitButton.disabled = selected.length !== 4;
+      }
+
+      function handleDragStart(e) {
+        e.dataTransfer.setData("text/plain", e.target.dataset.index);
+        e.target.classList.add("dragging");
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        const fromIndex = e.dataTransfer.getData("text/plain");
+        const toIndex = e.target.dataset.index;
+
+        if (fromIndex === undefined || toIndex === undefined) return;
+        const temp = words[fromIndex];
+        words[fromIndex] = words[toIndex];
+        words[toIndex] = temp;
+
+        renderGrid();
+      }
+
+      function handleDragEnd(e) {
+        e.target.classList.remove("dragging");
+      }
+
+      submitButton.addEventListener("click", () => {
+        const selected = Array.from(
+          document.querySelectorAll(".word.selected")
+        ).map((el) => el.textContent);
+        const match = categories.find(
+          (cat) =>
+            cat.words.every((w) => selected.includes(w)) &&
+            selected.every((w) => cat.words.includes(w)) &&
+            !solvedGroups.some((g) => g.title === cat.title)
+        );
+
+        if (match) {
+          solvedGroups.push(match);
+          feedbackArea.textContent = "Correct group!";
+          words = words.filter((w) => !match.words.includes(w));
+          renderGrid();
+        } else {
+          const closeMatch = categories.find(
+            (cat) => selected.filter((w) => cat.words.includes(w)).length === 3
+          );
+          feedbackArea.textContent = closeMatch ? "One away!" : "Try again.";
+          document.querySelectorAll(".word.selected").forEach((el) => {
+            el.classList.add("shake");
+            setTimeout(() => el.classList.remove("shake"), 500);
+            el.classList.remove("selected");
+          });
+        }
+        submitButton.disabled = true;
+      });
+
+      renderGrid();
+    </script>
+  </body>
+</html>
