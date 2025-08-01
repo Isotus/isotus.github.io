@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Word Connections</title>
+    <title>Connections 0</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
@@ -136,47 +136,44 @@
   </head>
   <body>
     <div id="game-container">
-      <h1>Connections</h1>
-      <p>Find groups of four words that share something in common.</p>
+      <h1 id="game-title"></h1>
+      <p id="game-description"></p>
       <div id="feedback-area"></div>
       <div id="word-grid"></div>
       <button id="submit-button" disabled>Select 4 Words</button>
     </div>
 
     <script>
+      // === Editable Puzzle Configuration ===
+      const puzzleTitle = "Connections 0";
+      const puzzleHint =
+        "Find groups of four words that share something in common.";
+      const rawCategoryInput = `
+      Instruments: a, b, c, d
+      Fruits: APPLE, ORANGE, BANANA, GRAPE
+      Weather: WIND, RAIN, HAIL, SNOW
+      Computer Parts: MONITOR, MOUSE, KEYBOARD, CPU
+    `;
+
+      // === Parsing and Game Initialization ===
+      document.getElementById("game-title").textContent = puzzleTitle;
+      document.getElementById("game-description").textContent = puzzleHint;
+
+      const categories = rawCategoryInput
+        .trim()
+        .split("\n")
+        .map((line) => {
+          const [title, wordsStr] = line.split(":");
+          return {
+            title: title.trim(),
+            words: wordsStr.split(",").map((w) => w.trim()),
+          };
+        });
+
+      let words = categories.flatMap((cat) => cat.words);
       const wordGrid = document.getElementById("word-grid");
       const submitButton = document.getElementById("submit-button");
       const feedbackArea = document.getElementById("feedback-area");
-
-      let words = [
-        "GUITAR",
-        "VIOLIN",
-        "PIANO",
-        "DRUMS",
-        "APPLE",
-        "ORANGE",
-        "BANANA",
-        "GRAPE",
-        "WIND",
-        "RAIN",
-        "HAIL",
-        "SNOW",
-        "MONITOR",
-        "MOUSE",
-        "KEYBOARD",
-        "CPU",
-      ];
-
-      const categories = [
-        { title: "Instruments", words: ["GUITAR", "VIOLIN", "PIANO", "DRUMS"] },
-        { title: "Fruits", words: ["APPLE", "ORANGE", "BANANA", "GRAPE"] },
-        { title: "Weather", words: ["WIND", "RAIN", "HAIL", "SNOW"] },
-        {
-          title: "Computer Parts",
-          words: ["MONITOR", "MOUSE", "KEYBOARD", "CPU"],
-        },
-      ];
-
       const colors = [
         "--correct-bg-1",
         "--correct-bg-2",
