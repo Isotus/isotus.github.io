@@ -338,9 +338,7 @@
         submitButton.disabled = true;
       });
 
-      // Navigation logic
       (function () {
-        // Extract current puzzle number from URL (expects .../connects/{number}.html)
         const match = window.location.pathname.match(
           /\/connects\/(-?\d+)\.html$/
         );
