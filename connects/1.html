@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conncets 0</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #f0f2f5;
+        --text-color: #1c1e21;
+        --word-bg: #e4e6eb;
+        --word-bg-hover: #d8dbdf;
+        --selected-bg: #4b88e2;
+        --selected-text: #ffffff;
+        --correct-bg-1: #a5d6a7;
+        --correct-bg-2: #81d4fa;
+        --correct-bg-3: #ffd54f;
+        --correct-bg-4: #ce93d8;
+        --incorrect-bg: #ef9a9a;
+        --button-bg: #1877f2;
+        --button-text: #ffffff;
+        --button-disabled-bg: #bcc0c4;
+        --border-radius: 8px;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 1rem;
+      }
+      #game-container {
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: #606770;
+      }
+      #feedback-area {
+        min-height: 24px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        transition: opacity 0.3s ease;
+      }
+      #word-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+      }
+      .word,
+      .solved-box {
+        background-color: var(--word-bg);
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 40px;
+        font-size: clamp(0.7rem, 3.5vw, 1rem);
+        transition: all 0.2s ease-in-out;
+      }
+      .word:not(.selected):hover {
+        transform: translateY(-2px);
+        background-color: var(--word-bg-hover);
+      }
+      .word.selected {
+        background-color: var(--selected-bg);
+        color: var(--selected-text);
+        transform: scale(1.05);
+      }
+      .word.incorrect {
+        background-color: var(--incorrect-bg);
+        animation: shake 0.5s;
+      }
+      .solved-box {
+        grid-column: span 4;
+        flex-direction: column;
+        cursor: default;
+      }
+      .dragging {
+        opacity: 0.5;
+        transform: scale(1.08) rotate(-2deg);
+        transition: transform 0.18s cubic-bezier(0.4, 0.2, 0.2, 1),
+          opacity 0.18s;
+        z-index: 2;
+      }
+      .drop-target {
+        outline: 3px dashed #4b88e2;
+        outline-offset: -4px;
+        box-shadow: 0 0 0 4px #b3cdfa44;
+        transition: outline 0.18s, box-shadow 0.18s;
+      }
+      #submit-button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--border-radius);
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        cursor: pointer;
+      }
+      #submit-button:disabled {
+        background-color: var(--button-disabled-bg);
+        cursor: not-allowed;
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        50% {
+          transform: translateX(5px);
+        }
+        75% {
+          transform: translateX(-5px);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <div
+        id="nav-bar"
+        style="
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          margin-bottom: 1.5rem;
+        "
+      >
+        <button id="nav-prev" aria-label="Previous Puzzle">-1</button>
+        <button id="nav-next" aria-label="Next Puzzle">+1</button>
+      </div>
+      <h1 id="game-title"></h1>
+      <p id="game-description"></p>
+      <div id="feedback-area"></div>
+      <div id="word-grid"></div>
+      <button id="submit-button" disabled>Select 4 Words</button>
+    </div>
+
+    <script>
+      const puzzleTitle = "Connects 1";
+      const puzzleHint = "a placeholder";
+      const rawCategoryInput = `
+      cat1: a, b, c, d
+      cat2: 1, 2, 3, 4
+      cat3: e, f, g, h
+      cat4: 5, 6, 7, 8
+    `;
+
+      document.getElementById("game-title").textContent = puzzleTitle;
+      document.getElementById("game-description").textContent = puzzleHint;
+
+      const categories = rawCategoryInput
+        .trim()
+        .split("\n")
+        .map((line) => {
+          const [title, wordsStr] = line.split(":");
+          return {
+            title: title.trim(),
+            words: wordsStr
+              .split(",")
+              .map((w) => w.trim())
+              .slice(0, 4),
+          };
+        });
+
+      let words = categories.flatMap((cat) => cat.words);
+
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+      }
+      shuffle(words);
+
+      const wordGrid = document.getElementById("word-grid");
+      const submitButton = document.getElementById("submit-button");
+      const feedbackArea = document.getElementById("feedback-area");
+      const colors = [
+        "--correct-bg-1",
+        "--correct-bg-2",
+        "--correct-bg-3",
+        "--correct-bg-4",
+      ];
+      const solvedGroups = [];
+
+      function renderGrid() {
+        wordGrid.innerHTML = "";
+        solvedGroups.forEach((group, idx) => {
+          const box = document.createElement("div");
+          box.className = "solved-box";
+          box.style.backgroundColor = `var(${colors[idx]})`;
+          box.innerHTML = `<div class="category-name"><strong>${
+            group.title
+          }</strong></div><div class="words">${group.words.join(", ")}</div>`;
+          wordGrid.appendChild(box);
+        });
+
+        words.forEach((word, index) => {
+          const div = document.createElement("div");
+          div.className = "word";
+          div.draggable = true;
+          div.textContent = word;
+          div.dataset.index = index;
+
+          div.addEventListener("click", () => toggleWord(div));
+          div.addEventListener("dragstart", handleDragStart);
+          div.addEventListener("dragover", handleDragOver);
+          div.addEventListener("dragleave", handleDragLeave);
+          div.addEventListener("drop", handleDrop);
+          div.addEventListener("dragend", handleDragEnd);
+
+          wordGrid.appendChild(div);
+        });
+      }
+
+      function toggleWord(el) {
+        if (
+          !el.classList.contains("selected") &&
+          document.querySelectorAll(".word.selected").length >= 4
+        )
+          return;
+        el.classList.toggle("selected");
+        const selected = document.querySelectorAll(".word.selected");
+        submitButton.disabled = selected.length !== 4;
+      }
+
+      let dragFromIndex = null;
+
+      function handleDragStart(e) {
+        dragFromIndex = e.target.dataset.index;
+        e.target.classList.add("dragging");
+        // Remove default drag ghost image
+        if (e.dataTransfer.setDragImage) {
+          const img = document.createElement("div");
+          img.style.width = "0px";
+          img.style.height = "0px";
+          document.body.appendChild(img);
+          e.dataTransfer.setDragImage(new Image(), 0, 0);
+          setTimeout(() => document.body.removeChild(img), 0);
+        }
+        e.dataTransfer.effectAllowed = "move";
+      }
+
+      function handleDragOver(e) {
+        e.preventDefault();
+        if (!e.target.classList.contains("drop-target")) {
+          e.target.classList.add("drop-target");
+        }
+      }
+
+      function handleDragLeave(e) {
+        e.target.classList.remove("drop-target");
+      }
+
+      function handleDrop(e) {
+        e.preventDefault();
+        e.target.classList.remove("drop-target");
+        const toIndex = e.target.dataset.index;
+        if (
+          dragFromIndex === null ||
+          toIndex === undefined ||
+          dragFromIndex === toIndex
+        )
+          return;
+        // Swap words
+        const temp = words[dragFromIndex];
+        words[dragFromIndex] = words[toIndex];
+        words[toIndex] = temp;
+        dragFromIndex = null;
+        renderGrid();
+      }
+
+      function handleDragEnd(e) {
+        e.target.classList.remove("dragging");
+        // Remove all drop-target highlights in case of cancel
+        document
+          .querySelectorAll(".drop-target")
+          .forEach((el) => el.classList.remove("drop-target"));
+        dragFromIndex = null;
+      }
+
+      submitButton.addEventListener("click", () => {
+        const selected = Array.from(
+          document.querySelectorAll(".word.selected")
+        ).map((el) => el.textContent);
+        const match = categories.find(
+          (cat) =>
+            cat.words.every((w) => selected.includes(w)) &&
+            selected.every((w) => cat.words.includes(w)) &&
+            !solvedGroups.some((g) => g.title === cat.title)
+        );
+
+        if (match) {
+          solvedGroups.push(match);
+          feedbackArea.textContent = "Ding Ding Ding!";
+          words = words.filter((w) => !match.words.includes(w));
+          renderGrid();
+        } else {
+          const closeMatch = categories.find(
+            (cat) => selected.filter((w) => cat.words.includes(w)).length === 3
+          );
+          feedbackArea.textContent = closeMatch ? "One away!" : "WRONG!";
+          document.querySelectorAll(".word.selected").forEach((el) => {
+            el.classList.add("shake");
+            setTimeout(() => el.classList.remove("shake"), 500);
+            el.classList.remove("selected");
+          });
+        }
+        submitButton.disabled = true;
+      });
+
+      (function () {
+        const match = window.location.pathname.match(
+          /\/connects\/(-?\d+)\.html$/
+        );
+        let currentNum = match ? parseInt(match[1], 10) : 0;
+        document.getElementById("nav-prev").onclick = function () {
+          // If on 0, go to -1; otherwise decrement
+          window.location.href = `/connects/${
+            currentNum === 0 ? -1 : currentNum - 1
+          }`;
+        };
+        document.getElementById("nav-next").onclick = function () {
+          // If on -1, go to 0; otherwise increment
+          window.location.href = `/connects/${
+            currentNum === -1 ? 0 : currentNum + 1
+          }`;
+        };
+      })();
+
+      renderGrid();
+    </script>
+  </body>
+</html>
