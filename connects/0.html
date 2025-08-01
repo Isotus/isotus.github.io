@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Connections 1</title>
+    <title>Connections 0</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
@@ -144,18 +144,15 @@
     </div>
 
     <script>
-      // === Editable Puzzle Configuration ===
-      const puzzleTitle = "Connections 1";
-      const puzzleHint =
-        "Find groups of four words that share something in common.";
+      const puzzleTitle = "Connections 0";
+      const puzzleHint = "you can use lowercase letters now...";
       const rawCategoryInput = `
       Instruments: a, b, c, d
-      Fruits: APPLE, ORANGE, BANANA, GRAPE
-      Weather: WIND, RAIN, HAIL, SNOW
-      Computer Parts: MONITOR, MOUSE, KEYBOARD, CPU
+      Fruits: 1, 2, 3, 4
+      Weather: e, f, g, h
+      Computer Parts: 5, 6, 7, 8
     `;
 
-      // === Parsing and Game Initialization ===
       document.getElementById("game-title").textContent = puzzleTitle;
       document.getElementById("game-description").textContent = puzzleHint;
 
