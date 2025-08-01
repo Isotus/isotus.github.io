@@ -145,18 +145,6 @@
   </head>
   <body>
     <div id="game-container">
-      <div
-        id="nav-bar"
-        style="
-          display: flex;
-          justify-content: center;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        "
-      >
-        <button id="navdown" aria-label="-1">-1</button>
-        <button id="navup" aria-label="+1">+1</button>
-      </div>
       <h1 id="game-title"></h1>
       <p id="game-description"></p>
       <div id="feedback-area"></div>
@@ -319,7 +307,7 @@
             !solvedGroups.some((g) => g.title === cat.title)
         );
 
-       if (match) {
+        if (match) {
           solvedGroups.push(match);
           feedbackArea.textContent = "Ding Ding Ding!";
           words = words.filter((w) => !match.words.includes(w));
@@ -338,19 +326,7 @@
         submitButton.disabled = true;
       });
 
-           // nav to other puzzles
-      document.getElementById("navdown").onclick = function () {
-        window.location.href = "/connects/-2";
-      };
-      document.getElementById("navup").onclick = function () {
-        window.location.href = "/connects/0";
-      };
-
       renderGrid();
     </script>
   </body>
 </html>
-</html>
-</html>
-</html>
-     
