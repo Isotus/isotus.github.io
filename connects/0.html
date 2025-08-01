@@ -145,18 +145,6 @@
   </head>
   <body>
     <div id="game-container">
-      <div
-        id="nav-bar"
-        style="
-          display: flex;
-          justify-content: center;
-          gap: 1rem;
-          margin-bottom: 1.5rem;
-        "
-      >
-        <button id="nav-prev" aria-label="Previous Puzzle">-1</button>
-        <button id="nav-next" aria-label="Next Puzzle">+1</button>
-      </div>
       <h1 id="game-title"></h1>
       <p id="game-description"></p>
       <div id="feedback-area"></div>
@@ -337,19 +325,6 @@
         }
         submitButton.disabled = true;
       });
-
-      (function () {
-        const match = window.location.pathname.match(
-          /\/connects\/(-?\d+)\.html$/
-        );
-        let currentNum = match ? parseInt(match[1], 10) : 0;
-        document.getElementById("nav-prev").onclick = function () {
-          window.location.href = `/connects/${currentNum - 1}`;
-        };
-        document.getElementById("nav-next").onclick = function () {
-          window.location.href = `/connects/${currentNum + 1}`;
-        };
-      })();
 
       renderGrid();
     </script>
