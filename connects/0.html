@@ -209,6 +209,11 @@
       }
 
       function toggleWord(el) {
+        if (
+          !el.classList.contains("selected") &&
+          document.querySelectorAll(".word.selected").length >= 4
+        )
+          return;
         el.classList.toggle("selected");
         const selected = document.querySelectorAll(".word.selected");
         submitButton.disabled = selected.length !== 4;
@@ -253,14 +258,14 @@
 
         if (match) {
           solvedGroups.push(match);
-          feedbackArea.textContent = "Correct group!";
+          feedbackArea.textContent = "Ding Ding Ding!";
           words = words.filter((w) => !match.words.includes(w));
           renderGrid();
         } else {
           const closeMatch = categories.find(
             (cat) => selected.filter((w) => cat.words.includes(w)).length === 3
           );
-          feedbackArea.textContent = closeMatch ? "One away!" : "Try again.";
+          feedbackArea.textContent = closeMatch ? "One away!" : "WRONG!";
           document.querySelectorAll(".word.selected").forEach((el) => {
             el.classList.add("shake");
             setTimeout(() => el.classList.remove("shake"), 500);
