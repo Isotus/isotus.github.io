@@ -100,7 +100,16 @@
       }
       .dragging {
         opacity: 0.5;
-        transform: scale(1.1);
+        transform: scale(1.08) rotate(-2deg);
+        transition: transform 0.18s cubic-bezier(0.4, 0.2, 0.2, 1),
+          opacity 0.18s;
+        z-index: 2;
+      }
+      .drop-target {
+        outline: 3px dashed #4b88e2;
+        outline-offset: -4px;
+        box-shadow: 0 0 0 4px #b3cdfa44;
+        transition: outline 0.18s, box-shadow 0.18s;
       }
       #submit-button {
         width: 100%;
@@ -201,6 +210,7 @@
           div.addEventListener("click", () => toggleWord(div));
           div.addEventListener("dragstart", handleDragStart);
           div.addEventListener("dragover", handleDragOver);
+          div.addEventListener("dragleave", handleDragLeave);
           div.addEventListener("drop", handleDrop);
           div.addEventListener("dragend", handleDragEnd);
 
@@ -219,30 +229,59 @@
         submitButton.disabled = selected.length !== 4;
       }
 
+      let dragFromIndex = null;
+
       function handleDragStart(e) {
-        e.dataTransfer.setData("text/plain", e.target.dataset.index);
+        dragFromIndex = e.target.dataset.index;
         e.target.classList.add("dragging");
+        // Remove default drag ghost image
+        if (e.dataTransfer.setDragImage) {
+          const img = document.createElement("div");
+          img.style.width = "0px";
+          img.style.height = "0px";
+          document.body.appendChild(img);
+          e.dataTransfer.setDragImage(img, 0, 0);
+          setTimeout(() => document.body.removeChild(img), 0);
+        }
+        e.dataTransfer.effectAllowed = "move";
       }
 
       function handleDragOver(e) {
         e.preventDefault();
+        if (!e.target.classList.contains("drop-target")) {
+          e.target.classList.add("drop-target");
+        }
+      }
+
+      function handleDragLeave(e) {
+        e.target.classList.remove("drop-target");
       }
 
       function handleDrop(e) {
         e.preventDefault();
-        const fromIndex = e.dataTransfer.getData("text/plain");
+        e.target.classList.remove("drop-target");
         const toIndex = e.target.dataset.index;
-
-        if (fromIndex === undefined || toIndex === undefined) return;
-        const temp = words[fromIndex];
-        words[fromIndex] = words[toIndex];
+        if (
+          dragFromIndex === null ||
+          toIndex === undefined ||
+          dragFromIndex === toIndex
+        )
+          return;
+        // Swap words
+        const temp = words[dragFromIndex];
+        words[dragFromIndex] = words[toIndex];
         words[toIndex] = temp;
-
+        dragFromIndex = null;
         renderGrid();
       }
 
       function handleDragEnd(e) {
         e.target.classList.remove("dragging");
+        // Remove all drop-target highlights in case of cancel
+        document
+          .querySelectorAll(".drop-target")
+          .forEach((el) => el.classList.remove("drop-target"));
+        dragFromIndex = null;
       }
 
       submitButton.addEventListener("click", () => {
