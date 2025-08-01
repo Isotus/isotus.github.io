@@ -36,11 +36,32 @@
         min-height: 100vh;
         margin: 0;
         padding: 1rem;
+        flex-direction: column;
       }
-      #game-container {
+      .nav-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        background: #e4e6eb;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 1rem;
+        font-weight: 600;
+        position: absolute;
+        top: 1.5rem;
+        left: 0;
+        right: 0;
+        z-index: 10;
+      }
+      #main-content {
         width: 100%;
         max-width: 500px;
-        text-align: center;
+        margin: 4.5rem auto 0 auto;
       }
       h1 {
         font-size: 2rem;
@@ -126,35 +147,6 @@
         background-color: var(--button-disabled-bg);
         cursor: not-allowed;
       }
-      .nav-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #e4e6eb;
-        padding: 0.5rem 1rem;
-        border-radius: var(--border-radius);
-        margin-bottom: 1.5rem;
-        max-width: 500px;
-        margin-left: auto;
-        margin-right: auto;
-        font-size: 1rem;
-        font-weight: 600;
-      }
-      .nav-btn {
-        background: var(--button-bg);
-        color: var(--button-text);
-        border: none;
-        border-radius: var(--border-radius);
-        padding: 0.5rem 1.2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .nav-btn:disabled {
-        background: var(--button-disabled-bg);
-        cursor: not-allowed;
-      }
       @keyframes shake {
         0%,
         100% {
@@ -178,12 +170,14 @@
       <span>Connects -1</span>
       <button class="nav-btn" id="next-btn">Next</button>
     </div>
-    <div id="game-container">
-      <h1 id="game-title"></h1>
-      <p id="game-description"></p>
-      <div id="feedback-area"></div>
-      <div id="word-grid"></div>
-      <button id="submit-button" disabled>Select 4 Words</button>
+    <div id="main-content">
+      <div id="game-container">
+        <h1 id="game-title"></h1>
+        <p id="game-description"></p>
+        <div id="feedback-area"></div>
+        <div id="word-grid"></div>
+        <button id="submit-button" disabled>Select 4 Words</button>
+      </div>
     </div>
 
     <script>
