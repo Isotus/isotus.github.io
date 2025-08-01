@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ant Trail Simulation</title>
+    <style>
+      body {
+        background: #222;
+        color: #fff;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        padding: 0;
+      }
+      canvas {
+        background: #333;
+        margin-top: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 16px #000a;
+      }
+      #info {
+        margin-top: 1rem;
+        font-size: 1rem;
+        color: #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ant Trail Simulation</h1>
+    <canvas id="sim" width="700" height="500"></canvas>
+    <div id="info">
+      <span>Blue: Nest</span> | <span>Green: Food</span> |
+      <span>Yellow: Ants</span> | <span>Purple: Pheromone</span>
+    </div>
+    <script>
+      // --- Simulation parameters ---
+      const W = 700,
+        H = 500;
+      const N_ANTS = 40;
+      const N_FOOD = 3;
+      const PHEROMONE_DECAY = 0.995;
+      const PHEROMONE_DEPOSIT = 1.5;
+      const PHEROMONE_MAX = 100;
+      const ANT_SPEED = 1.2;
+      const ANT_TURN_ANGLE = Math.PI / 8;
+      const SENSE_DIST = 8;
+      const SENSE_ANGLE = Math.PI / 4;
+      const FOOD_RADIUS = 12;
+      const NEST_RADIUS = 18;
+
+      // --- World setup ---
+      const canvas = document.getElementById("sim");
+      const ctx = canvas.getContext("2d");
+
+      // Pheromone grid
+      const gridSize = 2;
+      const gridW = Math.floor(W / gridSize);
+      const gridH = Math.floor(H / gridSize);
+      const pheromone = [];
+      for (let x = 0; x < gridW; ++x) {
+        pheromone[x] = [];
+        for (let y = 0; y < gridH; ++y) {
+          pheromone[x][y] = 0;
+        }
+      }
+
+      // Nest in center
+      const nest = { x: W / 2, y: H / 2 };
+
+      // Food sources
+      const foods = [];
+      for (let i = 0; i < N_FOOD; ++i) {
+        let angle = (i / N_FOOD) * 2 * Math.PI;
+        let dist = 180 + Math.random() * 60;
+        foods.push({
+          x: nest.x + Math.cos(angle) * dist,
+          y: nest.y + Math.sin(angle) * dist,
+          amount: 100,
+        });
+      }
+
+      // Ants
+      function randomAngle() {
+        return Math.random() * 2 * Math.PI;
+      }
+      const ants = [];
+      for (let i = 0; i < N_ANTS; ++i) {
+        ants.push({
+          x: nest.x + (Math.random() - 0.5) * 10,
+          y: nest.y + (Math.random() - 0.5) * 10,
+          angle: randomAngle(),
+          carrying: false,
+          trail: [], // store recent positions for trail
+        });
+      }
+
+      // --- Simulation loop ---
+      function updateAnt(ant) {
+        // Distance from nest
+        const dxNest = nest.x - ant.x;
+        const dyNest = nest.y - ant.y;
+        const distFromNest = Math.sqrt(dxNest * dxNest + dyNest * dyNest);
+
+        // Sense pheromone
+        let bestAngle = ant.angle;
+        let bestStrength = ant.carrying ? Infinity : -1;
+        let found = false;
+
+        // Let ants ignore pheromone trails until they've left the nest area
+        const shouldFollow = distFromNest > NEST_RADIUS + 10;
+
+        // Try 5 directions instead of 3
+        const SAMPLES = 5;
+        for (
+          let i = -Math.floor(SAMPLES / 2);
+          i <= Math.floor(SAMPLES / 2);
+          i++
+        ) {
+          let senseAngle = ant.angle + i * (SENSE_ANGLE / (SAMPLES / 2));
+          let sx = ant.x + Math.cos(senseAngle) * SENSE_DIST * 2; // look a bit farther
+          let sy = ant.y + Math.sin(senseAngle) * SENSE_DIST * 2;
+          let gx = Math.floor(sx / gridSize),
+            gy = Math.floor(sy / gridSize);
+          if (gx >= 0 && gx < gridW && gy >= 0 && gy < gridH) {
+            let strength = pheromone[gx][gy];
+            if (!ant.carrying && strength > bestStrength && shouldFollow) {
+              bestStrength = strength;
+              bestAngle = senseAngle;
+              found = true;
+            }
+            if (ant.carrying && strength < bestStrength && shouldFollow) {
+              bestStrength = strength;
+              bestAngle = senseAngle;
+              found = true;
+            }
+          }
+        }
+
+        // Encourage exploration with stronger noise
+        if (!found || !shouldFollow) {
+          bestAngle += (Math.random() - 0.5) * ANT_TURN_ANGLE * 2;
+        }
+
+        // Smooth but more decisive turning
+        let da = bestAngle - ant.angle;
+        da = Math.atan2(Math.sin(da), Math.cos(da)); // normalize
+        ant.angle += da * 0.4; // was 0.25, now turns faster
+
+        // Move
+        ant.x += Math.cos(ant.angle) * ANT_SPEED;
+        ant.y += Math.sin(ant.angle) * ANT_SPEED;
+
+        // Wall bounce
+        if (ant.x < 0 || ant.x > W || ant.y < 0 || ant.y > H) {
+          ant.angle += Math.PI;
+          ant.x = Math.max(0, Math.min(W, ant.x));
+          ant.y = Math.max(0, Math.min(H, ant.y));
+        }
+
+        // Store trail
+        ant.trail.push({ x: ant.x, y: ant.y });
+        if (ant.trail.length > 20) ant.trail.shift();
+
+        // Drop pheromone if carrying food
+        if (ant.carrying) {
+          let gx = Math.floor(ant.x / gridSize),
+            gy = Math.floor(ant.y / gridSize);
+          if (gx >= 0 && gx < gridW && gy >= 0 && gy < gridH) {
+            pheromone[gx][gy] = Math.min(
+              PHEROMONE_MAX,
+              pheromone[gx][gy] + PHEROMONE_DEPOSIT
+            );
+          }
+        }
+
+        // Check for food
+        if (!ant.carrying) {
+          for (let food of foods) {
+            let dx = food.x - ant.x,
+              dy = food.y - ant.y;
+            if (
+              food.amount > 0 &&
+              dx * dx + dy * dy < FOOD_RADIUS * FOOD_RADIUS
+            ) {
+              ant.carrying = true;
+              food.amount -= 1;
+              break;
+            }
+          }
+        }
+
+        // Check nest return
+        if (ant.carrying && distFromNest < NEST_RADIUS) {
+          ant.carrying = false;
+          ant.angle = randomAngle(); // reset direction to encourage further search
+        }
+      }
+
+      function decayPheromone() {
+        for (let x = 0; x < gridW; ++x) {
+          for (let y = 0; y < gridH; ++y) {
+            pheromone[x][y] *= PHEROMONE_DECAY;
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // Draw pheromone
+        for (let x = 0; x < gridW; ++x) {
+          for (let y = 0; y < gridH; ++y) {
+            let p = pheromone[x][y];
+            if (p > 0.2) {
+              ctx.fillStyle = `rgba(180,80,255,${Math.min(
+                0.25,
+                p / PHEROMONE_MAX
+              )})`;
+              ctx.fillRect(x * gridSize, y * gridSize, gridSize, gridSize);
+            }
+          }
+        }
+
+        // Draw nest
+        ctx.beginPath();
+        ctx.arc(nest.x, nest.y, NEST_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = "#3af";
+        ctx.fill();
+
+        // Draw food
+        for (let food of foods) {
+          if (food.amount > 0) {
+            ctx.beginPath();
+            ctx.arc(food.x, food.y, FOOD_RADIUS, 0, 2 * Math.PI);
+            ctx.fillStyle = "#3f3";
+            ctx.fill();
+            // Amount indicator
+            ctx.fillStyle = "#222";
+            ctx.font = "bold 12px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(food.amount, food.x, food.y + 4);
+          }
+        }
+
+        // Draw ant trails
+        for (let ant of ants) {
+          if (ant.trail.length > 1) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(ant.trail[0].x, ant.trail[0].y);
+            for (let i = 1; i < ant.trail.length; ++i) {
+              ctx.lineTo(ant.trail[i].x, ant.trail[i].y);
+            }
+            ctx.strokeStyle = ant.carrying
+              ? "rgba(255,255,0,0.5)"
+              : "rgba(255,255,136,0.3)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+
+        // Draw ants
+        for (let ant of ants) {
+          ctx.save();
+          ctx.translate(ant.x, ant.y);
+          ctx.rotate(ant.angle);
+          ctx.beginPath();
+          ctx.moveTo(6, 0);
+          ctx.lineTo(-4, 3);
+          ctx.lineTo(-4, -3);
+          ctx.closePath();
+          ctx.fillStyle = ant.carrying ? "#ff0" : "#ff8";
+          ctx.globalAlpha = 0.95;
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      function step() {
+        for (let ant of ants) updateAnt(ant);
+        decayPheromone();
+        draw();
+        requestAnimationFrame(step);
+      }
+
+      draw();
+      step();
+    </script>
+  </body>
+</html>

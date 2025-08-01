@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flick the Ball</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #f0f2f5;
+        --text-color: #1c1e21;
+        --button-bg: #1877f2;
+        --button-text: #ffffff;
+        --button-disabled-bg: #bcc0c4;
+        --border-radius: 8px;
+        --target-bg: #a5d6a7;
+        --ball-bg: #81d4fa;
+        --wall-bg: #e4e6eb;
+      }
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        padding: 1rem;
+      }
+      .nav-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 2rem;
+        background: #e4e6eb;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        margin-bottom: 1.5rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 1rem;
+        font-weight: 600;
+        position: absolute;
+        top: 1.5rem;
+        left: 0;
+        right: 0;
+        z-index: 10;
+      }
+      .nav-btn {
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: var(--border-radius);
+        padding: 0.5rem 1.2rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .nav-btn:disabled {
+        background: var(--button-disabled-bg);
+        cursor: not-allowed;
+      }
+      #main-content {
+        width: 100%;
+        max-width: 500px;
+        margin: 4.5rem auto 0 auto;
+      }
+      #game-container {
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+      }
+      h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+      p {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        color: #606770;
+      }
+      #feedback-area {
+        min-height: 24px;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        transition: opacity 0.3s ease;
+      }
+      #canvas-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+      canvas {
+        background: var(--wall-bg);
+        border-radius: var(--border-radius);
+        box-shadow: 0 2px 8px #0001;
+        touch-action: none;
+      }
+      #reset-button {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: var(--border-radius);
+        background-color: var(--button-bg);
+        color: var(--button-text);
+        cursor: pointer;
+      }
+      #reset-button:disabled {
+        background-color: var(--button-disabled-bg);
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nav-bar">
+      <button class="nav-btn" id="prev-btn">Previous</button>
+      <span>Flick the Ball</span>
+      <button class="nav-btn" id="next-btn">Next</button>
+    </div>
+    <div id="main-content">
+      <div id="game-container">
+        <h1>Flick the Ball</h1>
+        <p>
+          Flick the blue ball into the green target zone! Drag and release to
+          launch. Try to win in as few flicks as possible.
+        </p>
+        <div id="feedback-area"></div>
+        <div id="canvas-container">
+          <canvas id="game-canvas" width="400" height="400"></canvas>
+        </div>
+        <button id="reset-button">Reset</button>
+      </div>
+    </div>
+    <script>
+      // --- Game constants ---
+      const canvas = document.getElementById("game-canvas");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width;
+      const H = canvas.height;
+      const BALL_RADIUS = 18;
+      const TARGET_RADIUS = 32;
+      const FRICTION = 0.98;
+      const MIN_VEL = 0.25;
+      const WALL_THICK = 8;
+
+      // --- Game state ---
+      let ball = { x: 70, y: H - 70, vx: 0, vy: 0, moving: false };
+      let target = { x: W - 70, y: 70, r: TARGET_RADIUS };
+      let dragging = false;
+      let dragStart = null;
+      let flicks = 0;
+      let gameWon = false;
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // Draw walls
+        ctx.fillStyle = "#d8dbdf";
+        ctx.fillRect(0, 0, W, WALL_THICK);
+        ctx.fillRect(0, H - WALL_THICK, W, WALL_THICK);
+        ctx.fillRect(0, 0, WALL_THICK, H);
+        ctx.fillRect(W - WALL_THICK, 0, WALL_THICK, H);
+
+        // Draw target
+        ctx.beginPath();
+        ctx.arc(target.x, target.y, target.r, 0, 2 * Math.PI);
+        ctx.fillStyle = "var(--target-bg)";
+        ctx.fill();
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#388e3c";
+        ctx.stroke();
+
+        // Draw ball
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, 2 * Math.PI);
+        ctx.fillStyle = "var(--ball-bg)";
+        ctx.shadowColor = "#4b88e2";
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#1976d2";
+        ctx.stroke();
+
+        // Draw drag line if dragging
+        if (dragging && dragStart) {
+          ctx.beginPath();
+          ctx.moveTo(ball.x, ball.y);
+          ctx.lineTo(dragStart.x, dragStart.y);
+          ctx.strokeStyle = "#4b88e2";
+          ctx.lineWidth = 3;
+          ctx.setLineDash([8, 6]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      }
+
+      function update() {
+        if (ball.moving) {
+          ball.x += ball.vx;
+          ball.y += ball.vy;
+          ball.vx *= FRICTION;
+          ball.vy *= FRICTION;
+
+          // Wall collisions
+          if (ball.x - BALL_RADIUS < WALL_THICK) {
+            ball.x = WALL_THICK + BALL_RADIUS;
+            ball.vx *= -0.7;
+          }
+          if (ball.x + BALL_RADIUS > W - WALL_THICK) {
+            ball.x = W - WALL_THICK - BALL_RADIUS;
+            ball.vx *= -0.7;
+          }
+          if (ball.y - BALL_RADIUS < WALL_THICK) {
+            ball.y = WALL_THICK + BALL_RADIUS;
+            ball.vy *= -0.7;
+          }
+          if (ball.y + BALL_RADIUS > H - WALL_THICK) {
+            ball.y = H - WALL_THICK - BALL_RADIUS;
+            ball.vy *= -0.7;
+          }
+
+          // Stop if slow
+          if (Math.abs(ball.vx) < MIN_VEL && Math.abs(ball.vy) < MIN_VEL) {
+            ball.vx = 0;
+            ball.vy = 0;
+            ball.moving = false;
+          }
+        }
+
+        // Win check
+        if (
+          !gameWon &&
+          Math.hypot(ball.x - target.x, ball.y - target.y) <
+            TARGET_RADIUS - BALL_RADIUS + 4 &&
+          !ball.moving
+        ) {
+          gameWon = true;
+          document.getElementById("feedback-area").textContent =
+            "You Win! Flicks: " + flicks;
+        }
+
+        draw();
+        requestAnimationFrame(update);
+      }
+
+      // --- Input handling ---
+      function isBallUnder(x, y) {
+        return Math.hypot(x - ball.x, y - ball.y) < BALL_RADIUS + 2;
+      }
+
+      function getCanvasPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        if (e.touches) {
+          return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top,
+          };
+        }
+        return {
+          x: e.clientX - rect.left,
+          y: e.clientY - rect.top,
+        };
+      }
+
+      function onPointerDown(e) {
+        if (gameWon || ball.moving) return;
+        const pos = getCanvasPos(e);
+        if (isBallUnder(pos.x, pos.y)) {
+          dragging = true;
+          dragStart = pos;
+          e.preventDefault();
+        }
+      }
+
+      function onPointerMove(e) {
+        if (!dragging) return;
+        dragStart = getCanvasPos(e);
+        e.preventDefault();
+      }
+
+      function onPointerUp(e) {
+        if (!dragging) return;
+        const pos = getCanvasPos(e);
+        // Flick: velocity is from dragStart to ball center, scaled
+        const dx = ball.x - pos.x;
+        const dy = ball.y - pos.y;
+        ball.vx = dx * 0.18;
+        ball.vy = dy * 0.18;
+        if (Math.abs(ball.vx) > 1 || Math.abs(ball.vy) > 1) {
+          ball.moving = true;
+          flicks++;
+          document.getElementById("feedback-area").textContent =
+            "Flicks: " + flicks;
+        }
+        dragging = false;
+        dragStart = null;
+        e.preventDefault();
+      }
+
+      // Mouse events
+      canvas.addEventListener("mousedown", onPointerDown);
+      canvas.addEventListener("mousemove", onPointerMove);
+      canvas.addEventListener("mouseup", onPointerUp);
+      canvas.addEventListener("mouseleave", onPointerUp);
+
+      // Touch events
+      canvas.addEventListener("touchstart", onPointerDown, { passive: false });
+      canvas.addEventListener("touchmove", onPointerMove, { passive: false });
+      canvas.addEventListener("touchend", onPointerUp, { passive: false });
+      canvas.addEventListener("touchcancel", onPointerUp, { passive: false });
+
+      // Reset button
+      document.getElementById("reset-button").addEventListener("click", () => {
+        ball = { x: 70, y: H - 70, vx: 0, vy: 0, moving: false };
+        flicks = 0;
+        gameWon = false;
+        document.getElementById("feedback-area").textContent = "";
+      });
+
+      // Navigation logic
+      document
+        .getElementById("prev-btn")
+        .addEventListener("click", function () {
+          window.location.href = "connects/1.html";
+        });
+      document
+        .getElementById("next-btn")
+        .addEventListener("click", function () {
+          window.location.href = "connects/2.html";
+        });
+
+      // Start game
+      draw();
+      update();
+    </script>
+  </body>
+</html>
