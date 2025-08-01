@@ -307,7 +307,7 @@
             !solvedGroups.some((g) => g.title === cat.title)
         );
 
-        if (match) {
+       if (match) {
           solvedGroups.push(match);
           feedbackArea.textContent = "Ding Ding Ding!";
           words = words.filter((w) => !match.words.includes(w));
@@ -326,7 +326,21 @@
         submitButton.disabled = true;
       });
 
+      (function () {
+        const match = window.location.pathname.match(
+          /\/connects\/(-?\d+)\.html$/
+        );
+        let currentNum = match ? parseInt(match[1], 10) : 0;
+        document.getElementById("nav-prev").onclick = function () {
+          window.location.href = `/connects/${currentNum - 1}`;
+        };
+        document.getElementById("nav-next").onclick = function () {
+          window.location.href = `/connects/${currentNum + 1}`;
+        };
+      })();
+
       renderGrid();
     </script>
   </body>
+</html>
 </html>
