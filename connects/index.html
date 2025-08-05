@@ -2,15 +2,796 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Redirecting...</title>
+    <title>Connects</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #f0f2f5;
+        --text-color: #1c1e21;
+        --button-bg: #1877f2;
+        --button-text: #fff;
+        --border-radius: 12px;
+        --note-bg: #fff9a6;
+        --note-shadow: 0 4px 16px #0002;
+        --note-border: #e6d85c;
+        --note-width: 180px;
+        --note-height: 120px;
+        --note-font: "Poppins", sans-serif;
+        --note-bg-notnormal: #ffb347;
+        --note-border-notnormal: #e6a85c;
+        --note-bg-discovered: #fff;
+        --note-border-discovered: #bfc7d5;
+      }
+      body {
+        font-family: var(--note-font);
+        background: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0;
+      }
+      .logo-area {
+        margin-top: 3.5rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+      }
+      .logo-title {
+        font-size: 3.2rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: #1877f2;
+        text-shadow: 0 2px 12px #1877f233;
+      }
+      .logo-byline {
+        font-size: 0.55rem;
+        font-weight: 400;
+        color: #888;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 2.7rem;
+        pointer-events: none;
+        user-select: none;
+      }
+      .logo-statement {
+        font-size: 1.1rem;
+        color: #606770;
+        margin-top: 1.2rem;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+      }
+      .latest-btn {
+        margin-top: 2.5rem;
+        padding: 1.2rem 2.5rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: var(--button-bg);
+        color: var(--button-text);
+        border: none;
+        border-radius: var(--border-radius);
+        box-shadow: 0 2px 12px #1877f233;
+        cursor: pointer;
+        transition: background 0.2s, transform 0.2s;
+      }
+      .latest-btn:hover {
+        background: #1456b8;
+        transform: scale(1.04);
+      }
+      .notes-area {
+        margin-top: 2.5rem;
+        display: flex;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        min-height: 160px;
+        position: relative;
+        width: 100%;
+        max-width: 700px;
+      }
+      .note {
+        width: var(--note-width);
+        height: var(--note-height);
+        background: var(--note-bg);
+        border: 2px solid #e6d85c;
+        border-radius: 12px;
+        box-shadow: var(--note-shadow);
+        font-family: var(--note-font);
+        font-size: 1rem;
+        color: #444;
+        padding: 1.1rem 1rem 1.5rem 1rem;
+        position: absolute;
+        cursor: grab;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 1.1rem 1rem 1.5rem 1rem;
+      }
+      .note.notnormal {
+        background: var(--note-bg-notnormal);
+        border-color: var(--note-border-notnormal);
+      }
+      .note.buttonnote {
+        background: var(--note-bg-notnormal);
+        border-color: var(--note-border-notnormal);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+      }
+      .note.discovered {
+        background: var(--note-bg-discovered);
+        border: 2px solid var(--note-border-discovered);
+        color: #222;
+        min-width: 220px;
+        min-height: 160px;
+        width: auto !important;
+        height: auto !important;
+        max-width: 340px;
+        box-shadow: 0 4px 16px #0001;
+        padding: 1.2rem 1.2rem 2.2rem 1.2rem;
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        box-sizing: border-box;
+      }
+      .note-title-edit,
+      .note-content-edit {
+        cursor: text;
+        transition: box-shadow 0.18s;
+        border: none;
+        outline: none;
+        background: none;
+        box-sizing: border-box;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+      }
+      .note-title-edit {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #bfa800;
+        margin-bottom: 0.5rem;
+        min-height: 1.2em;
+        max-height: 2.2em;
+      }
+      .note-content-edit {
+        font-size: 0.98rem;
+        font-weight: 400;
+        color: #444;
+        min-height: 2.2em;
+        max-height: 70px;
+        line-height: 1.35;
+        padding-bottom: 0.2em;
+        overflow: auto;
+      }
+      .note-type-label {
+        font-size: 0.7rem;
+        color: #888;
+        position: absolute;
+        right: 10px;
+        bottom: 8px;
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0;
+        user-select: none;
+        pointer-events: none;
+        z-index: 2;
+        text-align: right;
+      }
+      .note.buttonnote .latest-btn {
+        margin: 0 auto;
+        display: block;
+        position: relative;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .note.discovered .note-type-label {
+        right: 14px;
+        bottom: 10px;
+        font-size: 0.75rem;
+      }
+      .discovered-title {
+        font-size: 1.18rem;
+        font-weight: 700;
+        margin-bottom: 0.7rem;
+        color: #1877f2;
+        letter-spacing: 0.02em;
+        width: 100%;
+        text-align: left;
+      }
+      .discovered-list {
+        font-size: 1.01rem;
+        color: #444;
+        margin: 0.2em 0 0.2em 0;
+        padding-left: 1.1em;
+        width: 100%;
+        list-style: disc inside;
+        word-break: break-word;
+      }
+      .discovered-list li {
+        margin-bottom: 0.35em;
+        padding-left: 0.1em;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+      }
+      .note.resizable {
+        resize: both;
+        overflow: auto;
+        min-width: 120px;
+        min-height: 80px;
+        max-width: 400px;
+        max-height: 400px;
+        cursor: nwse-resize;
+      }
+      .note:not(.resizable) {
+        resize: none !important;
+      }
+      /* Console note styles */
+      .note.console {
+        background: #181c20;
+        border: 2px solid #222;
+        border-radius: 12px;
+        color: #00ff7f;
+        font-family: "Fira Mono", "Consolas", "Menlo", "Monaco", monospace;
+        box-shadow: 0 4px 16px #0008;
+        font-size: 0.82rem;
+        padding: 0.7rem 1rem 2.2rem 1rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: stretch;
+      }
+      .note.console .note-type-label {
+        right: 14px;
+        bottom: 10px;
+        font-size: 0.75rem;
+        color: #00ff7f;
+      }
+      .console-body {
+        width: 100%;
+        flex: 1 1 auto;
+        overflow-y: auto;
+        font-size: 0.82rem;
+        padding-right: 2px;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        color: #00ff7f;
+        max-height: none;
+        scrollbar-width: none;
+      }
+      .console-input-area {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin-top: 0;
+        margin-bottom: 0;
+        padding: 0.2em 0;
+        border-top: 1px solid #222;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 1.7em;
+        background: #181c20;
+        z-index: 2;
+      }
+      .note.console {
+        position: relative;
+        padding-bottom: 2.7em;
+      }
+      .console-prompt {
+        color: #00ff7f;
+        font-family: inherit;
+        margin-right: 4px;
+        user-select: none;
+        font-size: 0.82rem;
+      }
+      .console-input {
+        background: none;
+        border: none;
+        outline: none;
+        color: #00ff7f;
+        font-family: inherit;
+        font-size: 0.82rem;
+        flex: 1;
+        cursor: text;
+      }
+      .console-line {
+        white-space: pre-wrap;
+        word-break: break-all;
+        font-family: inherit;
+        color: #00ff7f;
+        margin: 0;
+        padding: 0;
+      }
+      /* Hide scrollbars for all notes */
+      .note ::-webkit-scrollbar,
+      .note-content-edit::-webkit-scrollbar,
+      .console-body::-webkit-scrollbar {
+        width: 0 !important;
+        background: transparent;
+      }
+      .note-content-edit,
+      .console-body {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      .note-content-edit::-webkit-scrollbar,
+      .console-body::-webkit-scrollbar {
+        display: none;
+      }
+      .note-content-edit:focus,
+      .note-title-edit:focus,
+      .console-input:focus {
+        outline: none;
+        box-shadow: 0 0 0 2px #1877f2, 0 2px 12px #1877f233;
+        border-radius: 6px;
+      }
+      .note.editing {
+        box-shadow: 0 0 0 3px #1877f2, 0 2px 12px #1877f233;
+      }
+      /* Add inert note style */
+      .note.inert .note-title-edit,
+      .note.inert .note-content-edit {
+        pointer-events: none;
+        user-select: none;
+        background: none;
+        border: none;
+        color: #444;
+        font-family: var(--note-font);
+        font-size: inherit;
+        font-weight: inherit;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+      }
+      .note.inert .note-title-edit {
+        pointer-events: none;
+        user-select: none;
+        background: none;
+        border: none;
+        color: #1877f2;
+        font-family: var(--note-font);
+        font-size: 1.22rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        width: 100%;
+        letter-spacing: 0.02em;
+        text-align: left;
+        display: block;
+      }
+      .note.inert .note-content-edit {
+        pointer-events: none;
+        user-select: none;
+        background: none;
+        border: none;
+        color: #444;
+        font-family: var(--note-font);
+        font-size: 0.98rem;
+        font-weight: 400;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        display: block;
+      }
+    </style>
   </head>
   <body>
-    <p>Redirecting to the latest puzzle...</p>
+    <div class="logo-area">
+      <div class="logo-title">Connects</div>
+      <div class="logo-byline">by Isotus</div>
+      <div class="logo-statement">
+        The concept is original and the game is a unique and new experience
+        found nowhere else.
+      </div>
+    </div>
+    <button class="latest-btn" onclick="window.location.href='2.'">
+      Latest Puzzle
+    </button>
+    <div class="notes-area" id="notes-area"></div>
+    <div class="custom-menu" id="custom-menu">
+      <!-- Scrunch up menu item removed -->
+    </div>
     <script>
-      const X = 0; 
+      // Notes data (scalable)
+      const notes = [
+        {
+          title: "Update",
+          content: "Connect 1 and 2 available.",
+          type: "inert note",
+        },
+      ];
 
-      window.location.href = `https://isotus.github.io/connects/${X}`;
+      const notesArea = document.getElementById("notes-area");
+      let zCounter = 2;
+      let resizingEnabled = false;
+
+      // Helper to auto-expand textarea
+      function autoExpand(el) {
+        el.style.height = "auto";
+        el.style.height = el.scrollHeight + "px";
+      }
+
+      // Helper to get center position for new notes
+      function getCenterPosition(width = 180, height = 120) {
+        const areaRect = notesArea.getBoundingClientRect();
+        return {
+          left: Math.max(
+            0,
+            (notesArea.offsetWidth - width) / 2 + Math.random() * 40 - 20
+          ),
+          top: Math.max(
+            0,
+            (notesArea.offsetHeight - height) / 2 + Math.random() * 40 - 20
+          ),
+        };
+      }
+
+      // Store positions for each note
+      let notePositions = {};
+
+      // Initial positions for first notes
+      function setInitialPositions() {
+        if (Object.keys(notePositions).length === 0) {
+          notes.forEach((note, idx) => {
+            notePositions[idx] = {
+              left: 40 + idx * 210,
+              top: 30 + (idx % 2) * 140,
+              width: 180,
+              height: 120,
+            };
+          });
+        }
+      }
+
+      // Render notes
+      function renderNotes() {
+        setInitialPositions();
+        notesArea.innerHTML = "";
+        notes.forEach((note, idx) => {
+          const div = document.createElement("div");
+          let noteClass = "note";
+          if (note.type === "console note") noteClass += " console";
+          if (note.type === "not normal note") noteClass += " notnormal";
+          if (note.type === "button note") noteClass += " buttonnote";
+          if (note.type === "discovered note") noteClass += " discovered";
+          if (note.type === "inert note") noteClass += " inert";
+          if (resizingEnabled) noteClass += " resizable";
+          div.className = noteClass;
+
+          // Position and size
+          let pos = notePositions[idx];
+          if (!pos) {
+            pos = getCenterPosition();
+            notePositions[idx] = {
+              left: pos.left,
+              top: pos.top,
+              width: 180,
+              height: 120,
+            };
+          }
+          div.style.left = pos.left + "px";
+          div.style.top = pos.top + "px";
+          div.style.width = pos.width + "px";
+          div.style.height = pos.height + "px";
+          div.dataset.idx = idx;
+          div.style.position = "absolute";
+
+          // Editable normal note
+          if (note.type === "normal note" || note.type === "not normal note") {
+            div.innerHTML = `
+              <textarea class="note-title-edit" maxlength="32">${note.title}</textarea>
+              <textarea class="note-content-edit">${note.content}</textarea>
+              <div class="note-type-label">${note.type}</div>
+            `;
+            // Title edit
+            const titleEl = div.querySelector(".note-title-edit");
+            titleEl.addEventListener("focus", () =>
+              div.classList.add("editing")
+            );
+            titleEl.addEventListener("blur", () =>
+              div.classList.remove("editing")
+            );
+            titleEl.addEventListener("input", (e) => {
+              notes[idx].title = titleEl.value;
+              autoExpand(titleEl);
+            });
+            autoExpand(titleEl);
+            // Content edit
+            const contentEl = div.querySelector(".note-content-edit");
+            contentEl.addEventListener("focus", () =>
+              div.classList.add("editing")
+            );
+            contentEl.addEventListener("blur", () =>
+              div.classList.remove("editing")
+            );
+            contentEl.addEventListener("input", (e) => {
+              notes[idx].content = contentEl.value;
+              autoExpand(contentEl);
+              // Secret: transform to console note
+              if (contentEl.value.trim().toLowerCase() === "console") {
+                scrunchAndReplace(idx, "console note");
+              }
+            });
+            autoExpand(contentEl);
+          }
+          // Inert note
+          else if (note.type === "inert note") {
+            div.innerHTML = `
+              <div class="note-title-edit" style="pointer-events:none;user-select:none;">${note.title}</div>
+              <div class="note-content-edit" style="pointer-events:none;user-select:none;">${note.content}</div>
+              <div class="note-type-label">${note.type}</div>
+            `;
+          }
+          // Button note
+          else if (note.type === "button note") {
+            div.innerHTML = `
+              <button class="latest-btn" onclick="window.location.href='0.html'">Latest Puzzle</button>
+              <div class="note-type-label">${note.type}</div>
+            `;
+          }
+          // Discovered note
+          else if (note.type === "discovered note") {
+            div.innerHTML = `
+              <div class="discovered-title">Discovered Notes</div>
+              <ul class="discovered-list"></ul>
+              <div class="note-type-label">${note.type}</div>
+            `;
+            // Fill discovered list
+            const listEl = div.querySelector(".discovered-list");
+            discoveredNotes.forEach((type) => {
+              const li = document.createElement("li");
+              li.textContent = type;
+              listEl.appendChild(li);
+            });
+            // Expand height to fit content
+            setTimeout(() => {
+              div.style.height = div.scrollHeight + 10 + "px";
+            }, 0);
+          }
+          // Console note
+          else if (note.type === "console note") {
+            div.innerHTML = `
+              <div class="console-body"></div>
+              <div class="console-input-area">
+                <span class="console-prompt">user: </span>
+                <input class="console-input" autocomplete="off" />
+              </div>
+              <div class="note-type-label">${note.type}</div>
+            `;
+            // Console logic
+            const bodyEl = div.querySelector(".console-body");
+            const inputEl = div.querySelector(".console-input");
+            note.consoleLines = note.consoleLines || [];
+            note.consoleResponses = note.consoleResponses || [];
+            function renderConsoleLines() {
+              bodyEl.innerHTML = "";
+              for (let i = 0; i < note.consoleLines.length; i++) {
+                const lineEl = document.createElement("div");
+                lineEl.className = "console-line";
+                lineEl.textContent = "user: " + note.consoleLines[i];
+                bodyEl.appendChild(lineEl);
+                if (note.consoleResponses[i]) {
+                  const respEl = document.createElement("div");
+                  respEl.className = "console-line";
+                  respEl.textContent = "console: " + note.consoleResponses[i];
+                  bodyEl.appendChild(respEl);
+                }
+              }
+              bodyEl.scrollTop = bodyEl.scrollHeight;
+            }
+            renderConsoleLines();
+            inputEl.addEventListener("focus", () =>
+              div.classList.add("editing")
+            );
+            inputEl.addEventListener("blur", () =>
+              div.classList.remove("editing")
+            );
+            inputEl.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") {
+                const val = inputEl.value.trim().toLowerCase();
+                if (val !== "") {
+                  note.consoleLines.push(inputEl.value);
+                  let response = "";
+                  if (val === "new note") {
+                    addNote({
+                      title: "Not Normal Note",
+                      content: "",
+                      type: "not normal note",
+                    });
+                    response = "New note spawned!";
+                    updateDiscovered("not normal note");
+                  } else if (val === "play") {
+                    addNote({
+                      title: "",
+                      content: "",
+                      type: "button note",
+                    });
+                    response = "Button note spawned!";
+                    updateDiscovered("button note");
+                  } else if (val === "new note discovered") {
+                    addDiscoveredNote();
+                    response = "Discovered Notes spawned!";
+                    updateDiscovered("discovered note");
+                  } else if (val === "enable resize") {
+                    resizingEnabled = true;
+                    response = "RESIZING ENABLED";
+                    renderNotes();
+                  } else if (val === "debug discover") {
+                    const debugType =
+                      "debug " + Math.floor(100 + Math.random() * 900);
+                    updateDiscovered(debugType);
+                    response = `Debug note discovered: ${debugType}`;
+                  } else {
+                    response = "ERROR";
+                  }
+                  note.consoleResponses.push(response);
+                  renderConsoleLines();
+                  inputEl.value = "";
+                }
+                e.preventDefault();
+              }
+            });
+          }
+          // Resizing logic (only if enabled)
+          if (resizingEnabled) {
+            div.style.resize = "both";
+            div.style.overflow = "auto";
+            div.addEventListener("mouseup", function () {
+              notePositions[idx].width = div.offsetWidth;
+              notePositions[idx].height = div.offsetHeight;
+            });
+          } else {
+            div.style.resize = "none";
+          }
+          notesArea.appendChild(div);
+        });
+      }
+
+      // Track discovered note types
+      const discoveredNotes = ["normal note"];
+      function updateDiscovered(type) {
+        if (!discoveredNotes.includes(type)) {
+          discoveredNotes.push(type);
+          notes.forEach((note, idx) => {
+            if (note.type === "discovered note") {
+              renderNotes();
+            }
+          });
+        }
+      }
+      function addNote(noteObj) {
+        notes.push(noteObj);
+        const idx = notes.length - 1;
+        const pos = getCenterPosition();
+        notePositions[idx] = {
+          left: pos.left,
+          top: pos.top,
+          width: 180,
+          height: 120,
+        };
+        updateDiscovered(noteObj.type);
+        renderNotes();
+      }
+      function addDiscoveredNote() {
+        if (!notes.some((n) => n.type === "discovered note")) {
+          notes.push({
+            title: "Discovered Notes",
+            content: "",
+            type: "discovered note",
+          });
+          const idx = notes.length - 1;
+          const pos = getCenterPosition(220, 160);
+          notePositions[idx] = {
+            left: pos.left,
+            top: pos.top,
+            width: 220,
+            height: 160,
+          };
+          renderNotes();
+        }
+      }
+
+      // Scrunch up and replace note
+      function scrunchAndReplace(idx, newType) {
+        const noteDiv = notesArea.querySelector(`[data-idx="${idx}"]`);
+        if (!noteDiv) return;
+        noteDiv.classList.add("scrunching");
+        setTimeout(() => {
+          notes.splice(idx, 1, {
+            title: "console",
+            content: "",
+            type: "console note",
+            consoleLines: [],
+            consoleResponses: [],
+          });
+          notePositions[idx] = {
+            left: noteDiv.offsetLeft,
+            top: noteDiv.offsetTop,
+            width: noteDiv.offsetWidth,
+            height: noteDiv.offsetHeight,
+          };
+          updateDiscovered("console note");
+          renderNotes();
+        }, 700);
+      }
+
+      renderNotes();
+
+      // Drag logic
+      let dragNote = null,
+        offsetX = 0,
+        offsetY = 0,
+        dragIdx = null;
+      notesArea.addEventListener("mousedown", function (e) {
+        const target = e.target.closest(".note");
+        if (!target) return;
+        dragNote = target;
+        dragIdx = target.dataset.idx;
+        dragNote.classList.add("dragging");
+        dragNote.style.zIndex = ++zCounter;
+        const rect = dragNote.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        document.body.style.userSelect = "none";
+      });
+      document.addEventListener("mousemove", function (e) {
+        if (!dragNote) return;
+        const left =
+          e.clientX - offsetX - notesArea.getBoundingClientRect().left;
+        const top = e.clientY - offsetY - notesArea.getBoundingClientRect().top;
+        dragNote.style.left = `${left}px`;
+        dragNote.style.top = `${top}px`;
+        // Save position
+        if (dragIdx !== null) {
+          notePositions[dragIdx].left = left;
+          notePositions[dragIdx].top = top;
+        }
+      });
+      document.addEventListener("mouseup", function (e) {
+        if (dragNote) {
+          dragNote.classList.remove("dragging");
+          dragNote = null;
+          dragIdx = null;
+          document.body.style.userSelect = "";
+        }
+      });
+
+      // Custom context menu for notes
+      const customMenu = document.getElementById("custom-menu");
+      let menuNote = null;
+      notesArea.addEventListener("contextmenu", function (e) {
+        const target = e.target.closest(".note");
+        if (!target) return;
+        e.preventDefault();
+        menuNote = target;
+        customMenu.style.display = "block";
+        customMenu.style.left = `${e.clientX}px`;
+        customMenu.style.top = `${e.clientY}px`;
+      });
+      document.addEventListener("click", function (e) {
+        customMenu.style.display = "none";
+      });
+
+      // Prevent native context menu on notes
+      notesArea.addEventListener("contextmenu", function (e) {
+        if (e.target.closest(".note")) e.preventDefault();
+      });
     </script>
   </body>
-</html>
 </html>
