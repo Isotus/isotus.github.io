@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cultural/Memetic Evolution Simulation</title>
+  <style>
+    body {
+      background: #222;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      min-height: 100vh;
+    }
+    h1 {
+      margin-top: 24px;
+      margin-bottom: 8px;
+      font-size: 2em;
+      letter-spacing: 1px;
+    }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(3, 180px);
+      grid-template-rows: repeat(3, 180px);
+      gap: 16px;
+      margin: 32px 0 16px 0;
+      background: #333;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px #0008;
+    }
+    .cell {
+      background: #181818;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #0006;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: border 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .cell.selected1 { border: 3px solid gold; }
+    .cell.selected2 { border: 3px solid silver; }
+    .cell.selected3 { border: 3px solid #cd7f32; }
+    .agent-id {
+      background: #222c;
+      color: #fff;
+      font-size: 1em;
+      padding: 2px 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      margin-top: 4px;
+      pointer-events: none;
+      user-select: none;
+      text-shadow: 1px 1px 2px #000a;
+    }
+    #confirm {
+      padding: 12px 32px;
+      font-size: 1.2em;
+      background: #444;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      margin-top: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px #0006;
+    }
+    #confirm:disabled {
+      background: #222;
+      color: #888;
+      cursor: not-allowed;
+    }
+    #round {
+      margin-bottom: 8px;
+      font-size: 1.1em;
+      letter-spacing: 1px;
+    }
+    .fade-out {
+      animation: fadeOut 0.7s forwards;
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: scale(0.7);}
+    }
+    .fade-in {
+      animation: fadeIn 0.7s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(1.2);}
+      to { opacity: 1; transform: scale(1);}
+    }
+    .agent-canvas {
+      display: block;
+      margin: 0 auto;
+      background: #111;
+      border-radius: 8px;
+      margin-top: 8px;
+      box-shadow: 0 1px 4px #0008;
+    }
+    .agent-msg {
+      font-size: 0.95em;
+      color: #bde;
+      margin: 2px 0 6px 0;
+      text-align: center;
+      min-height: 1.2em;
+      font-style: italic;
+      text-shadow: 1px 1px 2px #000a;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cultural/Memetic Evolution</h1>
+  <div id="round">Round 1</div>
+  <div id="grid"></div>
+  <button id="confirm" disabled>Confirm Selection</button>
+  <script>
+    // --- Utility for random names ---
+    const adjectives1 = ["Brave","Silly","Quiet","Lively","Curious","Witty","Odd","Gentle","Wild","Clever","Bold","Shy","Zany","Calm","Swift","Dreamy","Funky","Nimble"];
+    const adjectives2 = ["Blue","Tiny","Spotted","Dizzy","Sparkly","Noisy","Striped","Sunny","Shadowy","Bouncy","Crimson","Fuzzy","Gleaming","Mossy","Jumpy"];
+    const nouns = ["Otter","Robot","Moth","Lizard","Fox","Blob","Sprite","Mole","Crow","Frog","Worm","Imp","Bat","Mouse","Orb","Gnome","Bug","Ghost","Puff"];
+    function randomName() {
+      return (
+        adjectives1[Math.floor(Math.random()*adjectives1.length)] + 
+        adjectives2[Math.floor(Math.random()*adjectives2.length)] + 
+        nouns[Math.floor(Math.random()*nouns.length)]
+      );
+    }
+
+    // --- Agent "DNA" and behaviors ---
+    function randomColor() {
+      return `hsl(${Math.floor(Math.random()*360)},${60+Math.random()*30}%,${40+Math.random()*30}%)`;
+    }
+    function randomDNA() {
+      // DNA: visual style, behavior style, interaction style, talent, sabotage, duo, etc.
+      return {
+        color1: randomColor(),
+        color2: randomColor(),
+        patternType: Math.floor(Math.random()*4), // 0: lines, 1: shapes, 2: waves, 3: dots
+        behavior: Math.floor(Math.random()*4), // 0: solo, 1: duo, 2: sabotage, 3: prop
+        talent: Math.floor(Math.random()*3), // 0: drawing, 1: text, 2: movement
+        prop: Math.random() < 0.4,
+        duo: Math.random() < 0.3,
+        sabotage: Math.random() < 0.25,
+        msgStyle: Math.floor(Math.random()*3), // 0: rhyme, 1: nonsense, 2: pattern
+        mutationRate: 0.13 + Math.random()*0.07,
+      };
+    }
+    function mutateDNA(dna) {
+      let ndna = JSON.parse(JSON.stringify(dna));
+      if (Math.random() < ndna.mutationRate) ndna.color1 = randomColor();
+      if (Math.random() < ndna.mutationRate) ndna.color2 = randomColor();
+      if (Math.random() < ndna.mutationRate) ndna.patternType = (ndna.patternType + 1 + Math.floor(Math.random()*3)) % 4;
+      if (Math.random() < ndna.mutationRate) ndna.behavior = Math.floor(Math.random()*4);
+      if (Math.random() < ndna.mutationRate) ndna.talent = Math.floor(Math.random()*3);
+      if (Math.random() < ndna.mutationRate) ndna.prop = !ndna.prop;
+      if (Math.random() < ndna.mutationRate) ndna.duo = !ndna.duo;
+      if (Math.random() < ndna.mutationRate) ndna.sabotage = !ndna.sabotage;
+      if (Math.random() < ndna.mutationRate) ndna.msgStyle = Math.floor(Math.random()*3);
+      if (Math.random() < 0.1) ndna.mutationRate = Math.max(0.05, Math.min(0.25, ndna.mutationRate + (Math.random()-0.5)*0.05));
+      return ndna;
+    }
+
+    // --- Agent class ---
+    class Agent {
+      constructor(dna, id) {
+        this.dna = dna || randomDNA();
+        this.id = id || randomName();
+        this.partner = null; // for duo acts
+        this.sabotageTarget = null;
+        this.loopState = Math.random()*1000;
+        this.prop = this.dna.prop ? {x: 0, y: 0, color: randomColor()} : null;
+        this.lastMsg = "";
+      }
+      // Generate a message/skit text
+      generateMsg() {
+        if (this.dna.talent === 1) {
+          // Text-based
+          if (this.dna.msgStyle === 0) {
+            // Rhyme
+            const rhymes = ["moon", "spoon", "soon", "loon", "tune", "balloon", "baboon"];
+            return "I swoon for a "+rhymes[Math.floor(Math.random()*rhymes.length)]+"!";
+          } else if (this.dna.msgStyle === 1) {
+            // Nonsense
+            const nonsense = ["Blip blop!", "Zoodle zorp!", "Wibble wobble!", "Snorfle!", "Greeble!", "Plonk!"];
+            return nonsense[Math.floor(Math.random()*nonsense.length)];
+          } else {
+            // Pattern
+            return "✨".repeat(2+Math.floor(Math.random()*4));
+          }
+        } else if (this.dna.talent === 2) {
+          // Movement-based
+          return ["Watch me wiggle!", "I can dance!", "Spin spin!", "Boing!"].sort(()=>Math.random()-0.5)[0];
+        } else {
+          // Drawing-based
+          return ["Look at my art!", "Behold!", "Ta-da!", "Isn't it pretty?"].sort(()=>Math.random()-0.5)[0];
+        }
+      }
+      // Draw the agent's visual display/skit
+      draw(ctx, t, partner, prop, sabotageTarget) {
+        ctx.clearRect(0,0,120,120);
+        // Background
+        ctx.fillStyle = this.dna.color2;
+        ctx.fillRect(0,0,120,120);
+
+        // Pattern
+        if (this.dna.patternType === 0) {
+          // Lines
+          ctx.save();
+          ctx.globalAlpha = 0.7;
+          ctx.strokeStyle = this.dna.color1;
+          ctx.lineWidth = 3 + 2*Math.sin(t/400 + this.loopState);
+          for (let i=0; i<6; ++i) {
+            ctx.beginPath();
+            ctx.moveTo(10, 20*i+10);
+            ctx.lineTo(110, 20*i+10 + 10*Math.sin(t/300+i+this.loopState));
+            ctx.stroke();
+          }
+          ctx.restore();
+        } else if (this.dna.patternType === 1) {
+          // Shapes
+          for (let i=0; i<4; ++i) {
+            ctx.save();
+            ctx.globalAlpha = 0.6 + 0.3*Math.sin(t/300+i+this.loopState);
+            ctx.fillStyle = this.dna.color1;
+            ctx.beginPath();
+            ctx.arc(30+60*Math.sin(t/400+i), 30+60*Math.cos(t/300+i), 18+8*Math.sin(t/200+i), 0, 2*Math.PI);
+            ctx.fill();
+            ctx.restore();
+          }
+        } else if (this.dna.patternType === 2) {
+          // Waves
+          ctx.save();
+          ctx.strokeStyle = this.dna.color1;
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          for (let x=0; x<=120; x+=6) {
+            ctx.lineTo(x, 60+30*Math.sin((x/30)+t/250+this.loopState));
+          }
+          ctx.stroke();
+          ctx.restore();
+        } else {
+          // Dots
+          for (let i=0; i<16; ++i) {
+            ctx.save();
+            ctx.globalAlpha = 0.5 + 0.5*Math.sin(t/200+i+this.loopState);
+            ctx.fillStyle = this.dna.color1;
+            ctx.beginPath();
+            ctx.arc(20+80*Math.random(), 20+80*Math.random(), 6+6*Math.sin(t/200+i), 0, 2*Math.PI);
+            ctx.fill();
+            ctx.restore();
+          }
+        }
+
+        // Prop
+        if (this.dna.prop && prop) {
+          ctx.save();
+          ctx.globalAlpha = 0.8;
+          ctx.fillStyle = prop.color;
+          ctx.beginPath();
+          ctx.arc(60+40*Math.sin(t/300+this.loopState), 100, 12+6*Math.sin(t/200+this.loopState), 0, 2*Math.PI);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Movement
+        if (this.dna.talent === 2) {
+          ctx.save();
+          ctx.globalAlpha = 0.7;
+          ctx.strokeStyle = "#fff";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(60+20*Math.sin(t/200+this.loopState), 60+20*Math.cos(t/200+this.loopState), 24, 0, 2*Math.PI);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // Duo act (draw partner's color)
+        if (this.dna.duo && partner) {
+          ctx.save();
+          ctx.globalAlpha = 0.5;
+          ctx.fillStyle = partner.dna.color1;
+          ctx.beginPath();
+          ctx.arc(60, 60, 18+8*Math.sin(t/300+this.loopState), 0, 2*Math.PI);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // Sabotage (draw a "mess" over target)
+        if (this.dna.sabotage && sabotageTarget) {
+          ctx.save();
+          ctx.globalAlpha = 0.5;
+          ctx.strokeStyle = "#f00";
+          ctx.lineWidth = 5;
+          for (let i=0; i<3; ++i) {
+            ctx.beginPath();
+            ctx.moveTo(10+Math.random()*100, 10+Math.random()*100);
+            ctx.lineTo(10+Math.random()*100, 10+Math.random()*100);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+    }
+
+    // --- Simulation State ---
+    let agents = [];
+    let round = 1;
+    let selected = [];
+    let grid = document.getElementById('grid');
+    let confirmBtn = document.getElementById('confirm');
+    let roundDiv = document.getElementById('round');
+    let cellEls = [];
+    let agentCanvases = [];
+    let agentMsgs = [];
+    let animReq = null;
+
+    // --- Initialize agents ---
+    function initAgents() {
+      agents = [];
+      for (let i=0; i<9; ++i) {
+        agents.push(new Agent(randomDNA()));
+      }
+    }
+
+    // --- Render grid ---
+    function renderGrid() {
+      grid.innerHTML = '';
+      cellEls = [];
+      agentCanvases = [];
+      agentMsgs = [];
+      for (let i=0; i<9; ++i) {
+        let cell = document.createElement('div');
+        cell.className = 'cell fade-in';
+        cell.dataset.idx = i;
+        // Agent ID
+        let idDiv = document.createElement('div');
+        idDiv.className = 'agent-id';
+        idDiv.textContent = agents[i].id;
+        cell.appendChild(idDiv);
+        // Canvas
+        let canvas = document.createElement('canvas');
+        canvas.width = 120;
+        canvas.height = 120;
+        canvas.className = 'agent-canvas';
+        cell.appendChild(canvas);
+        // Message
+        let msgDiv = document.createElement('div');
+        msgDiv.className = 'agent-msg';
+        msgDiv.textContent = agents[i].generateMsg();
+        agents[i].lastMsg = msgDiv.textContent;
+        cell.appendChild(msgDiv);
+
+        cell.addEventListener('click', () => handleCellClick(i));
+        grid.appendChild(cell);
+        cellEls.push(cell);
+        agentCanvases.push(canvas);
+        agentMsgs.push(msgDiv);
+      }
+    }
+
+    // --- Animation loop for agents' skits ---
+    function animate() {
+      let t = performance.now();
+      // Pair up duos and sabotage targets
+      let partners = Array(9).fill(null);
+      let props = Array(9).fill(null);
+      let sabotages = Array(9).fill(null);
+
+      // Find duos: pair up agents who want a duo
+      let duoIndices = [];
+      for (let i=0; i<9; ++i) if (agents[i].dna.duo) duoIndices.push(i);
+      for (let i=0; i<duoIndices.length; i+=2) {
+        if (duoIndices[i+1] !== undefined) {
+          partners[duoIndices[i]] = agents[duoIndices[i+1]];
+          partners[duoIndices[i+1]] = agents[duoIndices[i]];
+        }
+      }
+      // Props: assign a prop to those who want it
+      for (let i=0; i<9; ++i) if (agents[i].dna.prop) props[i] = agents[i].prop;
+      // Sabotage: pick a random target (not self)
+      for (let i=0; i<9; ++i) {
+        if (agents[i].dna.sabotage) {
+          let targets = agents.map((a,idx)=>idx).filter(idx=>idx!==i);
+          sabotages[i] = agents[targets[Math.floor(Math.random()*targets.length)]];
+        }
+      }
+      // Animate each agent
+      for (let i=0; i<9; ++i) {
+        agents[i].draw(agentCanvases[i].getContext('2d'), t, partners[i], props[i], sabotages[i]);
+        // Occasionally update message
+        if (Math.random() < 0.005) {
+          agentMsgs[i].textContent = agents[i].generateMsg();
+          agents[i].lastMsg = agentMsgs[i].textContent;
+        }
+      }
+      animReq = requestAnimationFrame(animate);
+    }
+
+    // --- Handle cell selection ---
+    function handleCellClick(idx) {
+      if (selected.includes(idx)) return;
+      if (selected.length >= 3) return;
+      selected.push(idx);
+      updateSelectionUI();
+      if (selected.length === 3) confirmBtn.disabled = false;
+    }
+    function updateSelectionUI() {
+      for (let i=0; i<9; ++i) {
+        cellEls[i].classList.remove('selected1','selected2','selected3');
+        let selIdx = selected.indexOf(i);
+        if (selIdx === 0) cellEls[i].classList.add('selected1');
+        if (selIdx === 1) cellEls[i].classList.add('selected2');
+        if (selIdx === 2) cellEls[i].classList.add('selected3');
+      }
+    }
+
+    // --- Confirm selection and evolve ---
+    confirmBtn.addEventListener('click', async () => {
+      confirmBtn.disabled = true;
+      // Fade out losers
+      for (let i=0; i<9; ++i) {
+        if (!selected.includes(i)) cellEls[i].classList.add('fade-out');
+      }
+      await new Promise(res=>setTimeout(res, 700));
+      // Winners: 1st gets 3 offspring + self, 2nd gets 2 + self, 3rd gets 1 + self
+      let newAgents = [];
+      let winnerIdxs = [...selected];
+      // Move winners to top row
+      for (let i=0; i<3; ++i) {
+        let winner = agents[winnerIdxs[i]];
+        newAgents.push(winner); // keep original
+        for (let j=0; j<(3-i); ++j) {
+          newAgents.push(new Agent(mutateDNA(winner.dna)));
+        }
+      }
+      // Fill up to 9
+      newAgents = newAgents.slice(0,9);
+      // Assign new IDs to offspring
+      for (let i=0; i<9; ++i) {
+        if (i<3) {
+          // Keep original winner in top row
+          newAgents[i].id = agents[winnerIdxs[i]].id;
+        } else {
+          newAgents[i].id = randomName();
+        }
+      }
+      agents = newAgents;
+      round++;
+      selected = [];
+      roundDiv.textContent = "Round "+round;
+      renderGrid();
+      updateSelectionUI();
+      if (animReq) cancelAnimationFrame(animReq);
+      animate();
+    });
+
+    // --- Start simulation ---
+    function start() {
+      initAgents();
+      renderGrid();
+      updateSelectionUI();
+      animate();
+    }
+    start();

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Memetic Selection Sandbox — 3×3 Cultural Evolution</title>
+    <style>
+      :root {
+        --bg: #0b1117;
+        --panel: #0f1b26;
+        --muted: #9fb2c9;
+        --accent: #7be2ff;
+        --selected: #62d0ff;
+        --winner: #ffd45e;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: Inter, system-ui, Arial, sans-serif;
+        background: var(--bg);
+        color: #e6f6ff;
+        user-select: none;
+      }
+      .wrap {
+        display: flex;
+        height: 100vh;
+        gap: 12px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+      .left {
+        width: 760px;
+        background: linear-gradient(180deg, var(--panel), #071526);
+        padding: 12px;
+        border-radius: 10px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap: 8px;
+        height: 640px;
+      }
+      .cell {
+        background: #061021;
+        border-radius: 6px;
+        padding: 6px;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        cursor: pointer;
+        transition: box-shadow 0.3s ease;
+      }
+      .cell.selected {
+        box-shadow: 0 0 10px 2px var(--selected);
+      }
+      .cell.winner {
+        box-shadow: 0 0 14px 3px var(--winner);
+      }
+      canvas.agentCanvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: #04121b;
+        border-radius: 4px;
+      }
+      .cellHeader {
+        position: absolute;
+        left: 6px;
+        top: 6px;
+        font-size: 11px;
+        color: var(--muted);
+        z-index: 5;
+        pointer-events: none;
+      }
+      .cellFooter {
+        position: absolute;
+        right: 6px;
+        bottom: 6px;
+        font-size: 11px;
+        color: var(--muted);
+        z-index: 5;
+        pointer-events: none;
+      }
+      .right {
+        flex: 1;
+        min-width: 320px;
+        background: linear-gradient(180deg, #071826, #061222);
+        padding: 12px;
+        border-radius: 10px;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 6px;
+      }
+      label {
+        display: block;
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      button {
+        background: #123446;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 8px;
+        border-radius: 6px;
+        color: #cfefff;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .selectionInfo {
+        margin-top: 10px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      textarea {
+        width: 100%;
+        height: 120px;
+        background: #041722;
+        color: #e6f6ff;
+        border-radius: 6px;
+        padding: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        resize: vertical;
+        font-family: monospace;
+      }
+      .footer {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      .largeBtn {
+        padding: 10px 12px;
+        font-size: 14px;
+        margin-right: 8px;
+      }
+      .badge {
+        background: #072c36;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        margin-top: 12px;
+        user-select: text;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="left">
+        <h1>Memetic Selection Sandbox — 3×3 Cultural Evolution</h1>
+        <div class="muted">
+          Agents produce fully-procedural skits looping indefinitely. Click
+          <strong>3 cells</strong> to select the top agents, then confirm to
+          evolve. Agents have readable ID names (two adjectives + noun).
+        </div>
+        <div style="margin-top: 10px" class="grid" id="grid">
+          <!-- 9 cells injected by JS -->
+        </div>
+        <div class="selectionInfo" id="selectionInfo">No agents selected</div>
+        <div style="margin-top: 8px">
+          <button id="confirmSelection" disabled>Confirm Selection</button>
+        </div>
+        <div style="margin-top: 8px" class="muted">
+          How it works: Each cell runs a short procedural skit looping
+          indefinitely. Select your top 3 favorites by clicking on their cells.
+          Confirm selection to reproduce the winners with mutation, replacing
+          the others. Winners move to the top row in the next round.
+        </div>
+      </div>
+      <div class="right">
+        <label>Mutation rate (body & lexicon)</label>
+        <input
+          id="mutRate"
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.12"
+        />
+        <div class="muted" style="text-align: center; margin-bottom: 10px">
+          <span id="mutLabel">0.12</span>
+        </div>
+
+        <label>Skit length (seconds)</label>
+        <input id="skitLen" type="range" min="1" max="6" step="0.5" value="3" />
+        <div class="muted" style="margin-bottom: 10px">
+          (Used for timing individual actions, skits loop)
+        </div>
+
+        <button id="randomize" class="largeBtn">Randomize Genomes</button>
+        <button id="reset" class="largeBtn">Reset Population</button>
+        <button id="export" class="largeBtn">Export JSON</button>
+
+        <label style="margin-top: 20px">Inspector / Log</label>
+        <textarea id="log" readonly></textarea>
+
+        <div class="footer">
+          Tips: try low mutation for gradual cultural drift or high mutation for
+          sudden memetic leaps. Everything generated from agents' genomes — no
+          external images or internet content.
+          <div class="badge">Made by ChatGPT with your ideas</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (() => {
+        const GRID_SIZE = 3;
+        const CELL_COUNT = GRID_SIZE * GRID_SIZE;
+        const gridEl = document.getElementById("grid");
+        const mutRateEl = document.getElementById("mutRate");
+        const mutLabel = document.getElementById("mutLabel");
+        const skitLenEl = document.getElementById("skitLen");
+        const logEl = document.getElementById("log");
+        const selectionInfo = document.getElementById("selectionInfo");
+        const confirmBtn = document.getElementById("confirmSelection");
+
+        let round = 0;
+
+        mutRateEl.addEventListener("input", () => {
+          mutLabel.textContent = mutRateEl.value;
+        });
+
+        // Friendly names generator
+        const adjectives1 = [
+          "Silent",
+          "Happy",
+          "Fuzzy",
+          "Clever",
+          "Brave",
+          "Bright",
+          "Sly",
+          "Witty",
+          "Bold",
+          "Merry",
+          "Quick",
+          "Calm",
+          "Kind",
+          "Sharp",
+          "Noble",
+        ];
+        const adjectives2 = [
+          "Swift",
+          "Gentle",
+          "Zany",
+          "Loud",
+          "Jolly",
+          "Wise",
+          "Sleek",
+          "Wild",
+          "Silly",
+          "Charming",
+          "Lively",
+          "Slick",
+          "Grim",
+          "Spry",
+          "Mighty",
+        ];
+        const nouns = [
+          "Tiger",
+          "Otter",
+          "Panda",
+          "Falcon",
+          "Koala",
+          "Eagle",
+          "Llama",
+          "Wolf",
+          "Fox",
+          "Badger",
+          "Heron",
+          "Mole",
+          "Lynx",
+          "Dove",
+          "Crane",
+        ];
+
+        function makeReadableID() {
+          return choice(adjectives1) + choice(adjectives2) + choice(nouns);
+        }
+
+        function rand(a = 0, b = 1) {
+          return a + Math.random() * (b - a);
+        }
+        function choice(arr) {
+          return arr[Math.floor(Math.random() * arr.length)];
+        }
+        function clamp(v, a, b) {
+          return Math.max(a, Math.min(b, v));
+        }
+
+        // Cell container class
+        class Cell {
+          constructor(index) {
+            this.index = index;
+            this.container = document.createElement("div");
+            this.container.className = "cell";
+            this.header = document.createElement("div");
+            this.header.className = "cellHeader";
+            this.header.textContent = `Cell ${index + 1}`;
+            this.footer = document.createElement("div");
+            this.footer.className = "cellFooter";
+            this.canvas = document.createElement("canvas");
+            this.canvas.className = "agentCanvas";
+            this.canvas.width = 220;
+            this.canvas.height = 200;
+            this.ctx = this.canvas.getContext("2d");
+            this.container.appendChild(this.header);
+            this.container.appendChild(this.canvas);
+            this.container.appendChild(this.footer);
+            gridEl.appendChild(this.container);
+            this.agent = null;
+            this.loopHandle = null;
+            this.isClearing = false;
+            // Selection toggle on click
+            this.container.addEventListener("click", () => {
+              if (this.isClearing) return; // disable selection while clearing
+              toggleSelection(this.index);
+            });
+          }
+          clearCanvas() {
+            this.ctx.fillStyle = "#04121b";
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+          }
+          // Start looping skit rendering
+          startLoop() {
+            if (!this.agent) return;
+            if (this.loopHandle) return; // already looping
+            let lastTimestamp = performance.now();
+            let startTime = lastTimestamp;
+            const duration = parseFloat(skitLenEl.value);
+            const ctx = this.ctx;
+            const w = this.canvas.width;
+            const h = this.canvas.height;
+            const agent = this.agent;
+
+            const loop = (timestamp) => {
+              if (this.isClearing) return; // stop if clearing for reproduction
+              const elapsed = ((timestamp - startTime) / 1000) % duration;
+              ctx.clearRect(0, 0, w, h);
+              // Background wash derived from palette
+              const hHue =
+                (agent.genome.paletteHue +
+                  Math.sin(elapsed * agent.genome.tempo) *
+                    agent.genome.paletteVar) %
+                360;
+              ctx.fillStyle = `hsl(${hHue},30%,6%)`;
+              ctx.fillRect(0, 0, w, h);
+              // Draw current frame actions
+              const script = agent.composeScript(duration);
+              for (const act of script) {
+                if (elapsed >= act.t0 && elapsed <= act.t1) {
+                  act.func(ctx, elapsed - act.t0, act.t1 - act.t0, w, h);
+                }
+              }
+              // HUD: ID
+              ctx.fillStyle = "rgba(255,255,255,0.08)";
+              ctx.font = "10px monospace";
+              ctx.fillText(agent.id, 8, 14);
+
+              this.loopHandle = requestAnimationFrame(loop);
+            };
+            this.loopHandle = requestAnimationFrame(loop);
+          }
+          stopLoop() {
+            if (this.loopHandle) {
+              cancelAnimationFrame(this.loopHandle);
+              this.loopHandle = null;
+            }
+            this.clearCanvas();
+          }
+          fadeOutAndClear(duration = 800) {
+            return new Promise((resolve) => {
+              this.isClearing = true;
+              let opacity = 1;
+              const step = () => {
+                opacity -= 16 / duration;
+                if (opacity <= 0) {
+                  this.container.style.opacity = "0";
+                  this.clearCanvas();
+                  resolve();
+                } else {
+                  this.container.style.opacity = opacity.toFixed(2);
+                  requestAnimationFrame(step);
+                }
+              };
+              step();
+            });
+          }
+          fadeIn(duration = 600) {
+            return new Promise((resolve) => {
+              let opacity = 0;
+              this.container.style.opacity = "0";
+              this.container.style.display = "block";
+              this.isClearing = false;
+              const step = () => {
+                opacity += 16 / duration;
+                if (opacity >= 1) {
+                  this.container.style.opacity = "1";
+                  resolve();
+                } else {
+                  this.container.style.opacity = opacity.toFixed(2);
+                  requestAnimationFrame(step);
+                }
+              };
+              step();
+            });
+          }
+        }
+
+        // Genome & Agent definitions
+
+        function randomGenome() {
+          return {
+            paletteHue: Math.floor(rand(0, 360)),
+            paletteVar: rand(6, 28),
+            shapeBias: {
+              circle: rand(0, 1),
+              rect: rand(0, 1),
+              poly: rand(0, 1),
+              line: rand(0, 1),
+            },
+            tempo: rand(0.6, 1.8),
+            expressiveness: rand(0, 1),
+            showmanship: rand(0, 1),
+            risk: rand(-0.4, 0.9),
+            multiAgentAffinity: Math.random() < 0.08 ? rand(1, 3) : 1,
+            lexicon: seedLexicon(),
+            signatureStroke: rand(1, 5),
+            propBias: rand(-1, 1),
+          };
+        }
+
+        function seedLexicon() {
+          const possible = [
+            "ha",
+            "ho",
+            "zi",
+            "wow",
+            "!",
+            "?",
+            "~",
+            "boop",
+            "plo",
+            "ding",
+            "*",
+            "->",
+            ":)",
+            "<3",
+            "brap",
+            "kap",
+          ];
+          const n = Math.floor(rand(3, 7));
+          const out = [];
+          for (let i = 0; i < n; i++)
+            out.push(
+              choice(possible) +
+                (Math.random() < 0.25 ? Math.floor(rand(0, 9)) : "")
+            );
+          return out;
+        }
+
+        class Agent {
+          constructor(id, genome) {
+            this.id = id || makeReadableID();
+            this.genome = genome || randomGenome();
+            this.age = 0;
+            this.traits = { copies: 1 };
+          }
+
+          composeScript(duration) {
+            const actions = [];
+            const G = this.genome;
+            const baseTempo = G.tempo;
+            const doText = Math.random() < G.expressiveness;
+            const doDraw = Math.random() < 1 - G.expressiveness * 0.6;
+            const phases = Math.max(1, Math.floor(rand(1, 4)));
+            let t = 0;
+            for (let p = 0; p < phases; p++) {
+              const pd = duration / phases;
+              if (doDraw && Math.random() < 0.9) {
+                actions.push({
+                  t0: t,
+                  t1: t + pd,
+                  func: this.makeDrawAction(
+                    baseTempo * (1 + rand(-0.3, 0.3)),
+                    G
+                  ),
+                });
+              }
+              if (doText && Math.random() < G.expressiveness) {
+                actions.push({
+                  t0: t + pd * 0.1,
+                  t1: t + pd * 0.9,
+                  func: this.makeTextAction(),
+                });
+              }
+              if (Math.random() < Math.abs(G.propBias) && Math.random() < 0.5) {
+                actions.push({
+                  t0: t + pd * 0.2,
+                  t1: t + pd * 0.6,
+                  func: this.makePropAction(),
+                });
+              }
+              t += pd;
+            }
+            return actions;
+          }
+
+          makeDrawAction(speed, G) {
+            return (ctx, elapsed, total, w, h) => {
+              const progress = elapsed / total;
+              ctx.strokeStyle = `hsl(${
+                (G.paletteHue + progress * 120) % 360
+              }, 80%, 65%)`;
+              ctx.lineWidth = G.signatureStroke;
+              ctx.lineCap = "round";
+              ctx.lineJoin = "round";
+              ctx.beginPath();
+              if (G.shapeBias.circle > 0.5) {
+                // Pulsing circle
+                const radius = 15 + 15 * Math.sin(progress * Math.PI * 2);
+                ctx.arc(w / 2, h / 2, radius, 0, Math.PI * 2);
+              } else if (G.shapeBias.rect > 0.5) {
+                // Rotating square
+                const size = 30 + 20 * Math.sin(progress * Math.PI * 2);
+                ctx.save();
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate(progress * Math.PI * 2);
+                ctx.rect(-size / 2, -size / 2, size, size);
+                ctx.restore();
+              } else if (G.shapeBias.poly > 0.4) {
+                // Pulsing triangle
+                const size = 40 + 20 * Math.sin(progress * Math.PI * 2);
+                const cx = w / 2;
+                const cy = h / 2;
+                ctx.moveTo(cx, cy - size / 1.5);
+                ctx.lineTo(cx + size / 1.3, cy + size / 2);
+                ctx.lineTo(cx - size / 1.3, cy + size / 2);
+                ctx.closePath();
+              } else {
+                // Lines radiating
+                const centerX = w / 2;
+                const centerY = h / 2;
+                const arms = 6;
+                for (let i = 0; i < arms; i++) {
+                  const angle =
+                    ((Math.PI * 2) / arms) * i + progress * Math.PI * 2;
+                  const length = 20 + 10 * Math.sin(progress * Math.PI * 4);
+                  ctx.moveTo(centerX, centerY);
+                  ctx.lineTo(
+                    centerX + Math.cos(angle) * length,
+                    centerY + Math.sin(angle) * length
+                  );
+                }
+              }
+              ctx.stroke();
+            };
+          }
+
+          makeTextAction() {
+            const lex = this.genome.lexicon;
+            const phrase = lex[Math.floor(Math.random() * lex.length)] || "...";
+            return (ctx, elapsed, total, w, h) => {
+              ctx.fillStyle = `hsl(${this.genome.paletteHue}, 90%, 75%)`;
+              ctx.font = "24px Comic Sans MS, cursive, sans-serif";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              const alpha =
+                elapsed < total * 0.1
+                  ? elapsed / (total * 0.1)
+                  : elapsed > total * 0.9
+                  ? 1 - (elapsed - total * 0.9) / (total * 0.1)
+                  : 1;
+              ctx.globalAlpha = alpha;
+              ctx.fillText(phrase, w / 2, h / 2);
+              ctx.globalAlpha = 1;
+            };
+          }
+
+          makePropAction() {
+            return (ctx, elapsed, total, w, h) => {
+              const alpha =
+                0.6 + 0.4 * Math.sin((elapsed / total) * Math.PI * 2);
+              ctx.globalAlpha = alpha;
+              const size = 40 + 20 * Math.sin((elapsed / total) * Math.PI * 4);
+              ctx.fillStyle = `hsl(${
+                (this.genome.paletteHue + 180) % 360
+              }, 80%, 65%)`;
+              ctx.beginPath();
+              ctx.moveTo(w / 2, h / 2 - size / 2);
+              ctx.lineTo(w / 2 + size / 2, h / 2 + size / 2);
+              ctx.lineTo(w / 2 - size / 2, h / 2 + size / 2);
+              ctx.closePath();
+              ctx.fill();
+              ctx.globalAlpha = 1;
+            };
+          }
+
+          cloneWithMutation(mutRate) {
+            function mutateVal(v, min, max) {
+              if (Math.random() < mutRate) {
+                return clamp(
+                  v + (Math.random() - 0.5) * (max - min) * 0.3,
+                  min,
+                  max
+                );
+              }
+              return v;
+            }
+            // Deep copy lexicon and mutate
+            let newLex = this.genome.lexicon.map((s) => {
+              if (Math.random() < mutRate) {
+                // mutate by adding or removing character or swapping syllables
+                if (Math.random() < 0.5 && s.length > 1) return s.slice(0, -1);
+                else return s + choice(["!", "?", "~", "o", "a"]);
+              }
+              return s;
+            });
+            // Possibly add a new lexeme
+            if (Math.random() < mutRate * 0.6 && newLex.length < 9) {
+              newLex.push(
+                choice([
+                  "ha",
+                  "ho",
+                  "zi",
+                  "wow",
+                  "boop",
+                  "ding",
+                  "brap",
+                  "kap",
+                ]) + Math.floor(rand(0, 9))
+              );
+            }
+            return new Agent(makeReadableID(), {
+              paletteHue: mutateVal(this.genome.paletteHue, 0, 360),
+              paletteVar: mutateVal(this.genome.paletteVar, 6, 28),
+              shapeBias: {
+                circle: mutateVal(this.genome.shapeBias.circle, 0, 1),
+                rect: mutateVal(this.genome.shapeBias.rect, 0, 1),
+                poly: mutateVal(this.genome.shapeBias.poly, 0, 1),
+                line: mutateVal(this.genome.shapeBias.line, 0, 1),
+              },
+              tempo: mutateVal(this.genome.tempo, 0.4, 2.4),
+              expressiveness: mutateVal(this.genome.expressiveness, 0, 1),
+              showmanship: mutateVal(this.genome.showmanship, 0, 1),
+              risk: mutateVal(this.genome.risk, -0.4, 0.9),
+              multiAgentAffinity:
+                Math.random() < 0.05
+                  ? mutateVal(this.genome.multiAgentAffinity, 1, 4)
+                  : 1,
+              lexicon: newLex,
+              signatureStroke: mutateVal(this.genome.signatureStroke, 1, 5),
+              propBias: mutateVal(this.genome.propBias, -1, 1),
+            });
+          }
+        }
+
+        // Population management
+        let population = [];
+        let cells = [];
+        let selectedIndices = new Set();
+
+        // Initialize cells and population
+        function init() {
+          gridEl.innerHTML = "";
+          cells = [];
+          population = [];
+          selectedIndices.clear();
+          selectionInfo.textContent = "No agents selected";
+          confirmBtn.disabled = true;
+          confirmBtn.style.display = "none";
+          for (let i = 0; i < CELL_COUNT; i++) {
+            const cell = new Cell(i);
+            cells.push(cell);
+          }
+          for (let i = 0; i < CELL_COUNT; i++) {
+            const agent = new Agent();
+            population.push(agent);
+            cells[i].agent = agent;
+            cells[i].header.textContent = `#${i + 1}: ${agent.id}`;
+            cells[i].container.classList.remove("selected", "winner");
+            cells[i].container.style.opacity = "1";
+            cells[i].fadeIn();
+            cells[i].startLoop();
+          }
+        }
+
+        // Selection logic
+        function toggleSelection(index) {
+          if (selectedIndices.has(index)) {
+            selectedIndices.delete(index);
+            cells[index].container.classList.remove("selected");
+          } else {
+            if (selectedIndices.size >= 3) return; // max 3 selections
+            selectedIndices.add(index);
+            cells[index].container.classList.add("selected");
+          }
+          updateSelectionUI();
+        }
+
+        function updateSelectionUI() {
+          if (selectedIndices.size === 0) {
+            selectionInfo.textContent = "No agents selected";
+            confirmBtn.disabled = true;
+            confirmBtn.style.display = "none";
+          } else {
+            const selArray = Array.from(selectedIndices);
+            selectionInfo.textContent = `Selected agents: ${selArray
+              .map((i) => population[i].id)
+              .join(", ")}`;
+            confirmBtn.disabled = selArray.length !== 3;
+            confirmBtn.style.display = "inline-block";
+          }
+        }
+
+        async function reproduceAndNextRound() {
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = "Processing...";
+
+          // Show winner highlight top row candidates
+          const selectedArray = Array.from(selectedIndices);
+          const winners = selectedArray.map((i) => population[i]);
+          // Sort winners by selection order (user order is click order)
+          // Actually we don't track click order, so just treat in selection order.
+
+          // Visual: Mark winners, highlight top row
+          for (let i = 0; i < cells.length; i++) {
+            cells[i].container.classList.remove("winner");
+          }
+          for (const i of selectedArray) {
+            cells[i].container.classList.add("winner");
+          }
+
+          // Fade out non-selected agents
+          for (let i = 0; i < cells.length; i++) {
+            if (!selectedIndices.has(i)) {
+              await cells[i].fadeOutAndClear();
+            } else {
+              // Stop their loops, we'll restart them below
+              cells[i].stopLoop();
+            }
+          }
+
+          // Prepare new population array
+          let newPop = [];
+
+          // Reproduction according to ranking: (1st:4 total, 2nd:3 total, 3rd:2 total)
+          // For simplicity, winners order = the order of selection.
+          // Assign counts:
+          const reproductionCounts = [4, 3, 2];
+
+          for (let rank = 0; rank < 3; rank++) {
+            const winner = winners[rank];
+            const count = reproductionCounts[rank];
+            // Original + offspring with mutation (except last offspring could be original)
+            for (let j = 0; j < count; j++) {
+              if (j === 0) {
+                // Original
+                newPop.push(winner);
+              } else {
+                newPop.push(
+                  winner.cloneWithMutation(parseFloat(mutRateEl.value))
+                );
+              }
+            }
+          }
+
+          // If newPop less than 9 (shouldn't be), fill with new random agents
+          while (newPop.length < CELL_COUNT) {
+            newPop.push(new Agent());
+          }
+
+          // Place winners in top row first
+          // newPop order: 1st winner and offspring (4), 2nd winner and offspring (3), 3rd winner and offspring (2)
+          // So top row (cells 0,1,2) gets the first offspring of each winner (or original).
+          // Let's assign top row first three agents as the original winners themselves (no offspring).
+          // Then fill rest rows with offspring.
+
+          // We'll do this by moving all original winners to top row cells 0-2,
+          // then assign offspring to the remaining cells below.
+
+          // Extract originals and offspring separately
+          let originals = [winners[0], winners[1], winners[2]];
+          let offspring = [];
+          let offspringIdx = 0;
+          for (let i = 0; i < newPop.length; i++) {
+            if (!originals.includes(newPop[i])) {
+              offspring.push(newPop[i]);
+            }
+          }
+
+          // Build final generation order:
+          // Top row: originals (order 1-3)
+          // Next rows: offspring
+
+          newPop = [...originals, ...offspring.slice(0, 6)];
+
+          population = newPop;
+
+          // Reset selections for next round
+          selectedIndices.clear();
+          updateSelectionUI();
+
+          // Update cells with new agents, fade in, and restart loops
+          for (let i = 0; i < cells.length; i++) {
+            const cell = cells[i];
+            cell.agent = population[i];
+            cell.header.textContent = `#${i + 1}: ${population[i].id}`;
+            cell.container.classList.remove("selected", "winner");
+            cell.container.style.opacity = "0";
+            await cell.fadeIn();
+            cell.startLoop();
+          }
+          confirmBtn.textContent = "Confirm Selection";
+        }
+
+        // Controls events
+        confirmBtn.addEventListener("click", () => {
+          if (selectedIndices.size === 3) {
+            reproduceAndNextRound();
+          }
+        });
+
+        document.getElementById("randomize").addEventListener("click", () => {
+          for (let i = 0; i < population.length; i++) {
+            population[i] = new Agent();
+            cells[i].agent = population[i];
+            cells[i].header.textContent = `#${i + 1}: ${population[i].id}`;
+            cells[i].container.classList.remove("selected", "winner");
+            cells[i].stopLoop();
+            cells[i].startLoop();
+          }
+          selectedIndices.clear();
+          updateSelectionUI();
+          log("Randomized population");
+        });
+
+        document.getElementById("reset").addEventListener("click", () => {
+          init();
+          log("Population reset");
+        });
+
+        document.getElementById("export").addEventListener("click", () => {
+          const data = population.map((agent) => ({
+            id: agent.id,
+            genome: agent.genome,
+          }));
+          const json = JSON.stringify(data, null, 2);
+          navigator.clipboard.writeText(json);
+          log("Population JSON copied to clipboard");
+        });
+
+        function log(msg) {
+          const now = new Date().toLocaleTimeString();
+          logEl.value += `[${now}] ${msg}\n`;
+          logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        // Init first time
+        init();
+        log("Simulation started");
+      })();
+    </script>
+  </body>
+</html>
