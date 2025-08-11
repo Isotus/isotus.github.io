@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Emergent Signaling Evolution — Standalone Simulation</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: #0f1724;
+        --muted: #9aa7bf;
+        --accent: #8be9fd;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, Arial;
+        background: var(--bg);
+        color: #dbe7ff;
+      }
+      .app {
+        display: flex;
+        height: 100vh;
+      }
+      canvas {
+        background: #071024;
+        flex: 1;
+        display: block;
+      }
+      .sidebar {
+        width: 360px;
+        background: linear-gradient(180deg, var(--panel), #071a2b);
+        padding: 14px;
+        box-sizing: border-box;
+        overflow: auto;
+      }
+      h1 {
+        font-size: 16px;
+        margin: 6px 0 12px;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      .row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      input[type="range"] {
+        width: 100%;
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      button {
+        background: #123446;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 8px;
+        border-radius: 6px;
+        color: #cfefff;
+        cursor: pointer;
+      }
+      .small {
+        font-size: 12px;
+        padding: 6px;
+      }
+      .presets {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      textarea {
+        width: 100%;
+        height: 120px;
+        background: #051226;
+        color: #cfefff;
+        border-radius: 6px;
+        padding: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+      .statline {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .tog {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .footer {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .badge {
+        background: #062432;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <canvas id="world"></canvas>
+      <div class="sidebar">
+        <h1>Emergent Signaling Evolution</h1>
+        <div class="muted">
+          A novel evolution sandbox where organisms evolve both bodies and
+          *symbolic signals* that alter the environment and affect perception —
+          creating cultural niches and emergent behaviours.
+        </div>
+
+        <div style="margin-top: 12px" class="controls">
+          <label
+            >Population size
+            <span id="label-pop" class="muted">200</span></label
+          >
+          <input id="pop" type="range" min="10" max="1000" value="200" />
+
+          <label
+            >Mutation rate <span id="label-mut" class="muted">0.05</span></label
+          >
+          <input
+            id="mutRate"
+            type="range"
+            min="0"
+            max="0.5"
+            step="0.01"
+            value="0.05"
+          />
+
+          <label
+            >Signal mutation rate
+            <span id="label-sigmut" class="muted">0.08</span></label
+          >
+          <input
+            id="sigMut"
+            type="range"
+            min="0"
+            max="0.5"
+            step="0.01"
+            value="0.08"
+          />
+
+          <label
+            >Reproduction cost
+            <span id="label-cost" class="muted">0.4</span></label
+          >
+          <input
+            id="cost"
+            type="range"
+            min="0.05"
+            max="1.2"
+            step="0.01"
+            value="0.4"
+          />
+
+          <label
+            >Resource regen rate
+            <span id="label-regen" class="muted">0.005</span></label
+          >
+          <input
+            id="regen"
+            type="range"
+            min="0"
+            max="0.03"
+            step="0.001"
+            value="0.005"
+          />
+
+          <label
+            >Sensor range <span id="label-srange" class="muted">28</span></label
+          >
+          <input
+            id="srange"
+            type="range"
+            min="4"
+            max="120"
+            step="1"
+            value="28"
+          />
+
+          <label
+            >Signal reach (pixels)
+            <span id="label-sreach" class="muted">64</span></label
+          >
+          <input
+            id="sreach"
+            type="range"
+            min="4"
+            max="240"
+            step="1"
+            value="64"
+          />
+
+          <label
+            >Speed multiplier
+            <span id="label-speed" class="muted">1.0</span></label
+          >
+          <input
+            id="speedm"
+            type="range"
+            min="0.1"
+            max="4"
+            step="0.1"
+            value="1"
+          />
+
+          <div class="row">
+            <button id="step" class="small">Step ×1</button>
+            <button id="pause" class="small">Pause</button>
+            <button id="reset" class="small">Reset</button>
+            <button id="randomize" class="small">Randomize Preset</button>
+          </div>
+
+          <label>Presets</label>
+          <div class="presets">
+            <button class="small preset" data-preset="cooperative">
+              Cooperative Memetic Bloom
+            </button>
+            <button class="small preset" data-preset="predator">
+              Predator–Signal Arms Race
+            </button>
+            <button class="small preset" data-preset="cultural">
+              Cultural Niche Construction
+            </button>
+          </div>
+
+          <label>Toggle visual layers</label>
+          <div class="tog">
+            <label
+              ><input type="checkbox" id="showSignals" checked /> Signals</label
+            >
+            <label
+              ><input type="checkbox" id="showResources" checked />
+              Resources</label
+            >
+            <label><input type="checkbox" id="showIDs" /> IDs</label>
+          </div>
+
+          <label>Save / Load / Export</label>
+          <div class="row">
+            <button id="export" class="small">Export JSON</button>
+            <button id="save" class="small">Save to local</button>
+            <button id="load" class="small">Load</button>
+          </div>
+
+          <label>Selection / Visualizer</label>
+          <div class="row">
+            <button id="select-fittest" class="small">Zoom to Fittest</button>
+            <button id="toggle-trace" class="small">Toggle Traces</button>
+          </div>
+
+          <div class="statline" id="stats">Initializing...</div>
+
+          <label>Log / Snapshot (JSON)</label>
+          <textarea id="log" readonly></textarea>
+
+          <div class="footer">
+            Tip: try lowering mutation on body traits but increasing signal
+            mutation — see how culture can outrun morphology.
+            <div style="margin-top: 8px">
+              <span class="badge">Unique premise:</span> Signals are
+              *first-class* evolvable traits that produce temporary
+              environmental fields and shared symbolic memory — agents can learn
+              to 'interpret' signals through innate mapping genes.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Emergent Signaling Evolution — single-file simulation
+      // Copyright: creative playground
+      // Features:
+      // - Agents have bodies (speed, size, metabolism) and signals (a short byte pattern)
+      // - Signals propagate as fields that alter resources/perception temporarily
+      // - Cultural transmission: offspring inherit signal lexicons with mutation
+      // - Plenty of UI controls for exploration
+
+      (() => {
+        const canvas = document.getElementById("world");
+        const ctx = canvas.getContext("2d");
+        let W = (canvas.width = innerWidth - 360); // sidebar width
+        let H = (canvas.height = innerHeight);
+
+        window.addEventListener("resize", () => {
+          W = canvas.width = innerWidth - 360;
+          H = canvas.height = innerHeight;
+        });
+
+        // Utility
+        const rand = (a = 0, b = 1) => a + Math.random() * (b - a);
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+        const dist2 = (a, b) => {
+          const dx = a.x - b.x,
+            dy = a.y - b.y;
+          return dx * dx + dy * dy;
+        };
+
+        // World grid of resources
+        const gridSize = 128; // resolution of resource field
+        const grid = { w: gridSize, h: gridSize, cells: [] };
+        for (let i = 0; i < grid.w * grid.h; i++)
+          grid.cells[i] = Math.random() * 0.6;
+
+        function resourceAt(x, y) {
+          const gx = clamp(Math.floor((x / W) * grid.w), 0, grid.w - 1);
+          const gy = clamp(Math.floor((y / H) * grid.h), 0, grid.h - 1);
+          return grid.cells[gy * grid.w + gx];
+        }
+        function consumeAt(x, y, amt) {
+          const gx = clamp(Math.floor((x / W) * grid.w), 0, grid.w - 1);
+          const gy = clamp(Math.floor((y / H) * grid.h), 0, grid.h - 1);
+          const i = gy * grid.w + gx;
+          const taken = Math.min(grid.cells[i], amt);
+          grid.cells[i] -= taken;
+          return taken;
+        }
+
+        // Signal fields: dynamic list of fields created by organisms' emissions
+        const signals = [];
+        function createSignal(x, y, signalSpec) {
+          signals.push({
+            x,
+            y,
+            age: 0,
+            ttl: signalSpec.ttl || 200,
+            shape: signalSpec.pattern,
+            strength: signalSpec.strength || 1,
+            ownerColor: signalSpec.color,
+          });
+        }
+        function sampleSignalsAt(x, y) {
+          // returns combined effect; simple sum of gaussian attenuated by distance and pattern weight
+          let val = 0;
+          let influence = 0;
+          for (const s of signals) {
+            const dx = s.x - x,
+              dy = s.y - y;
+            const d2 = dx * dx + dy * dy;
+            const r = s.shape.reach || 64;
+            if (d2 > r * r) continue;
+            const w = Math.exp(-d2 / (r * r * 0.6)) * s.strength;
+            val += w * (s.shape.effect || 1);
+            influence += w;
+          }
+          return { val: val, influence: influence };
+        }
+
+        // Genome representation
+        // genome = {size, speed, metabolism, colorHue, interpretorThreshold, signalSpec}
+        function randomGenome() {
+          return {
+            size: rand(2, 8),
+            speed: rand(0.2, 2.2),
+            metabolism: rand(0.001, 0.02),
+            hue: Math.floor(rand(0, 360)),
+            interpretor: rand(0, 1), // how strongly it interprets signals
+            sensorBias: rand(-1, 1),
+            // signal spec: pattern (array of ints), strength, ttl, reach, effect
+            signal: {
+              pattern: Array.from({ length: 3 }, () =>
+                Math.random() > 0.5 ? 1 : 0
+              ),
+              strength: rand(0.3, 1.6),
+              ttl: rand(60, 360),
+              reach: rand(30, 120),
+              effect: rand(-1, 1),
+            },
+          };
+        }
+
+        // Agent class
+        class Agent {
+          constructor(x, y, genome) {
+            this.x = x;
+            this.y = y;
+            this.vx = rand(-1, 1);
+            this.vy = rand(-1, 1);
+            this.energy = rand(0.4, 1.2);
+            this.age = 0;
+            this.genome = genome || randomGenome();
+            this.id = Math.floor(Math.random() * 1e9).toString(36);
+            this.trace = [];
+          }
+          step(dt) {
+            this.age += dt;
+            // sense local resource & signals
+            const rsrc = resourceAt(this.x, this.y);
+            const sig = sampleSignalsAt(this.x, this.y);
+
+            // simple behaviour mapping: consumption, movement bias based on interpreted signal
+            // interpret signal via genome.interpretor + sensorBias
+            const interpretation =
+              sig.influence * this.genome.interpretor + this.genome.sensorBias;
+
+            // movement: random walk biased by interpretation
+            const angle =
+              Math.atan2(this.vy, this.vx) +
+              (rand(-0.8, 0.8) + interpretation * 1.2) * 0.2;
+            const sp = this.genome.speed;
+            this.vx = Math.cos(angle) * sp;
+            this.vy = Math.sin(angle) * sp;
+            this.x += this.vx * dt;
+            this.y += this.vy * dt;
+
+            // wrap
+            if (this.x < 0) this.x += W;
+            if (this.x > W) this.x -= W;
+            if (this.y < 0) this.y += H;
+            if (this.y > H) this.y -= H;
+
+            // eat
+            const eaten = consumeAt(this.x, this.y, this.genome.size * 0.02);
+            this.energy += eaten;
+
+            // metabolism cost
+            this.energy -= this.genome.metabolism * dt * this.genome.size;
+
+            // spontaneous emission of signal (probability scaled by energy)
+            if (Math.random() < 0.01 * dt * (this.energy + 0.1)) {
+              createSignal(this.x, this.y, {
+                pattern: this.genome.signal.pattern,
+                strength: this.genome.signal.strength,
+                ttl: this.genome.signal.ttl,
+                reach: this.genome.signal.reach,
+                effect: this.genome.signal.effect,
+                color: this.genome.hue,
+              });
+            }
+
+            // reproduction
+            if (this.energy > 1.6) {
+              this.energy -= UI.cost.valueAsNumber || 0.4;
+              return this.reproduce();
+            }
+
+            // death by starvation or old age
+            if (this.energy <= 0 || this.age > 2000) return "die";
+
+            // store trace
+            if (UI.traces) this.trace.push({ x: this.x, y: this.y });
+            if (this.trace.length > 200) this.trace.shift();
+            return null;
+          }
+          reproduce() {
+            // child inherits genome with mutations
+            const childGenome = JSON.parse(JSON.stringify(this.genome));
+            mutateGenome(
+              childGenome,
+              UI.mutRate.valueAsNumber,
+              UI.sigMut.valueAsNumber
+            );
+            const angle = rand(0, Math.PI * 2);
+            const dist = this.genome.size * 4;
+            const cx = (this.x + Math.cos(angle) * dist + W) % W;
+            const cy = (this.y + Math.sin(angle) * dist + H) % H;
+            const child = new Agent(cx, cy, childGenome);
+            child.energy = this.energy * 0.4;
+            this.energy *= 0.6;
+            return child;
+          }
+        }
+
+        function mutateGenome(g, mutBody, mutSignal) {
+          // body traits
+          if (Math.random() < mutBody)
+            g.size = clamp(g.size + rand(-0.8, 0.8), 1.2, 12);
+          if (Math.random() < mutBody)
+            g.speed = clamp(g.speed + rand(-0.6, 0.6), 0.05, 3.5);
+          if (Math.random() < mutBody)
+            g.metabolism = clamp(
+              g.metabolism + rand(-0.003, 0.003),
+              0.0001,
+              0.05
+            );
+          if (Math.random() < mutBody)
+            g.hue = (g.hue + Math.floor(rand(-30, 30)) + 360) % 360;
+          if (Math.random() < mutBody)
+            g.interpretor = clamp(g.interpretor + rand(-0.25, 0.25), -2, 2);
+          if (Math.random() < mutBody)
+            g.sensorBias = clamp(g.sensorBias + rand(-0.3, 0.3), -2, 2);
+          // signal structure mutations
+          if (Math.random() < mutSignal) {
+            // flip a bit or change strength
+            const p = g.signal.pattern;
+            const idx = Math.floor(rand(0, p.length));
+            p[idx] = p[idx] ^ 1;
+            if (Math.random() < 0.5)
+              g.signal.pattern.push(Math.random() > 0.5 ? 1 : 0);
+            if (g.signal.pattern.length > 6)
+              g.signal.pattern.splice(
+                Math.floor(rand(0, g.signal.pattern.length)),
+                1
+              );
+            g.signal.strength = clamp(
+              g.signal.strength + rand(-0.3, 0.3),
+              -1.5,
+              2.5
+            );
+            g.signal.ttl = Math.max(
+              10,
+              g.signal.ttl + Math.floor(rand(-30, 30))
+            );
+            g.signal.reach = clamp(g.signal.reach + rand(-20, 20), 6, 240);
+            g.signal.effect = clamp(g.signal.effect + rand(-0.6, 0.6), -2, 2);
+          }
+        }
+
+        // Population
+        let population = [];
+
+        function initPopulation(n) {
+          population = [];
+          for (let i = 0; i < n; i++) {
+            const x = rand(0, W),
+              y = rand(0, H);
+            population.push(new Agent(x, y, randomGenome()));
+          }
+        }
+
+        // UI bindings
+        const UI = {
+          pop: document.getElementById("pop"),
+          mutRate: document.getElementById("mutRate"),
+          sigMut: document.getElementById("sigMut"),
+          cost: document.getElementById("cost"),
+          regen: document.getElementById("regen"),
+          srange: document.getElementById("srange"),
+          sreach: document.getElementById("sreach"),
+          speedm: document.getElementById("speedm"),
+          pause: document.getElementById("pause"),
+          reset: document.getElementById("reset"),
+          step: document.getElementById("step"),
+          randomize: document.getElementById("randomize"),
+          showSignals: document.getElementById("showSignals"),
+          showResources: document.getElementById("showResources"),
+          showIDs: document.getElementById("showIDs"),
+          export: document.getElementById("export"),
+          save: document.getElementById("save"),
+          load: document.getElementById("load"),
+          selectFittest: document.getElementById("select-fittest"),
+          toggleTrace: document.getElementById("toggle-trace"),
+          presets: document.querySelectorAll(".preset"),
+          log: document.getElementById("log"),
+        };
+
+        // Labels
+        const labels = [
+          "label-pop",
+          "label-mut",
+          "label-sigmut",
+          "label-cost",
+          "label-regen",
+          "label-srange",
+          "label-sreach",
+          "label-speed",
+        ];
+        function updateLabels() {
+          document.getElementById("label-pop").textContent = UI.pop.value;
+          document.getElementById("label-mut").textContent = UI.mutRate.value;
+          document.getElementById("label-sigmut").textContent = UI.sigMut.value;
+          document.getElementById("label-cost").textContent = UI.cost.value;
+          document.getElementById("label-regen").textContent = UI.regen.value;
+          document.getElementById("label-srange").textContent = UI.srange.value;
+          document.getElementById("label-sreach").textContent = UI.sreach.value;
+          document.getElementById("label-speed").textContent = UI.speedm.value;
+        }
+        ["input", "change"].forEach((ev) => {
+          for (const id of [
+            "pop",
+            "mutRate",
+            "sigMut",
+            "cost",
+            "regen",
+            "srange",
+            "sreach",
+            "speedm",
+          ])
+            document.getElementById(id).addEventListener(ev, updateLabels);
+        });
+        updateLabels();
+
+        // Interaction controls
+        let running = true;
+        let stepCount = 1;
+        UI.pause.addEventListener("click", () => {
+          running = !running;
+          UI.pause.textContent = running ? "Pause" : "Resume";
+        });
+        UI.step.addEventListener("click", () => {
+          stepOnce();
+        });
+        UI.reset.addEventListener("click", () => {
+          resetWorld();
+        });
+        UI.randomize.addEventListener("click", () => {
+          randomizeParams();
+        });
+
+        for (const p of UI.presets)
+          p.addEventListener("click", (e) => {
+            applyPreset(e.target.dataset.preset);
+          });
+
+        UI.export.addEventListener("click", () => {
+          const data = snapshot();
+          UI.log.value = JSON.stringify(data, null, 2);
+          downloadJSON(data, "sim_snapshot.json");
+        });
+        UI.save.addEventListener("click", () => {
+          localStorage.setItem("sim_save", JSON.stringify(snapshot()));
+          alert("Saved to local");
+        });
+        UI.load.addEventListener("click", () => {
+          const s = localStorage.getItem("sim_save");
+          if (s) {
+            loadSnapshot(JSON.parse(s));
+          } else alert("No save found");
+        });
+        UI.selectFittest.addEventListener("click", () => {
+          zoomToFittest();
+        });
+        UI.toggleTrace.addEventListener("click", () => {
+          UI.traces = !UI.traces;
+          UI.toggleTrace.textContent = UI.traces ? "Traces On" : "Traces Off";
+        });
+        UI.traces = true;
+
+        function downloadJSON(obj, filename) {
+          const blob = new Blob([JSON.stringify(obj)], {
+            type: "application/json",
+          });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+        }
+
+        function snapshot() {
+          return {
+            population: population.map((a) => ({
+              x: a.x,
+              y: a.y,
+              energy: a.energy,
+              genome: a.genome,
+              id: a.id,
+            })),
+            grid: grid.cells,
+            params: {
+              pop: UI.pop.value,
+              mutRate: UI.mutRate.value,
+              sigMut: UI.sigMut.value,
+              cost: UI.cost.value,
+            },
+          };
+        }
+        function loadSnapshot(s) {
+          grid.cells = s.grid || grid.cells;
+          population = (s.population || []).map((p) => {
+            const a = new Agent(p.x, p.y, p.genome);
+            a.energy = p.energy;
+            a.id = p.id;
+            return a;
+          });
+        }
+
+        function zoomToFittest() {
+          if (population.length === 0) return;
+          population.sort((a, b) => b.energy - a.energy);
+          const f = population[0]; // center camera
+          // We implement camera simply by translating canvas draw coordinates around f
+          camera.x = f.x;
+          camera.y = f.y;
+          camera.zoom = 1.6;
+          setTimeout(() => (camera.zoom = 1), 3000);
+        }
+
+        function applyPreset(name) {
+          if (name === "cooperative") {
+            UI.pop.value = 300;
+            UI.mutRate.value = 0.02;
+            UI.sigMut.value = 0.18;
+            UI.cost.value = 0.3;
+            UI.regen.value = 0.008;
+            UI.sreach.value = 80;
+          } else if (name === "predator") {
+            UI.pop.value = 180;
+            UI.mutRate.value = 0.09;
+            UI.sigMut.value = 0.12;
+            UI.cost.value = 0.6;
+            UI.regen.value = 0.002;
+            UI.sreach.value = 140;
+          } else if (name === "cultural") {
+            UI.pop.value = 240;
+            UI.mutRate.value = 0.03;
+            UI.sigMut.value = 0.22;
+            UI.cost.value = 0.35;
+            UI.regen.value = 0.006;
+            UI.sreach.value = 110;
+          }
+          updateLabels();
+          resetWorld();
+        }
+
+        function randomizeParams() {
+          UI.pop.value = Math.floor(rand(40, 500));
+          UI.mutRate.value = rand(0, 0.2).toFixed(2);
+          UI.sigMut.value = rand(0.02, 0.3).toFixed(2);
+          UI.cost.value = rand(0.2, 0.9).toFixed(2);
+          UI.regen.value = rand(0, 0.02).toFixed(3);
+          updateLabels();
+          resetWorld();
+        }
+
+        // Camera
+        const camera = { x: W / 2, y: H / 2, zoom: 1 };
+
+        function resetWorld() {
+          // reset grid and signals
+          for (let i = 0; i < grid.w * grid.h; i++)
+            grid.cells[i] = Math.random() * 0.6;
+          signals.length = 0;
+          initPopulation(parseInt(UI.pop.value));
+          UI.log.value = "";
+        }
+
+        // Initialize
+        resetWorld();
+
+        // Simulation loop
+        let last = performance.now();
+        function step(dt) {
+          // diffuse resources slightly and regen
+          const regen = UI.regen.valueAsNumber;
+          // simple diffusion kernel on grid (one pass approximate)
+          for (let y = 1; y < grid.h - 1; y++) {
+            for (let x = 1; x < grid.w - 1; x++) {
+              const i = y * grid.w + x;
+              const v = grid.cells[i];
+              const nb =
+                (grid.cells[i - 1] +
+                  grid.cells[i + 1] +
+                  grid.cells[i - grid.w] +
+                  grid.cells[i + grid.w]) *
+                0.25;
+              grid.cells[i] = clamp(v * 0.98 + nb * 0.02 + regen * 0.4, 0, 2);
+            }
+          }
+
+          // update signals
+          for (let i = signals.length - 1; i >= 0; i--) {
+            const s = signals[i];
+            s.age += dt;
+            if (s.age > s.ttl) signals.splice(i, 1);
+          }
+
+          // agents
+          const newAgents = [];
+          for (let i = population.length - 1; i >= 0; i--) {
+            const a = population[i];
+            const res = a.step(dt * UI.speedm.valueAsNumber);
+            if (res === "die") {
+              population.splice(i, 1);
+              continue;
+            }
+            if (res instanceof Agent) newAgents.push(res);
+          }
+          for (const na of newAgents) population.push(na);
+
+          // If population extinct => reset
+          if (population.length === 0) {
+            // reset with some survivors seeded
+            initPopulation(Math.max(6, Math.floor(UI.pop.valueAsNumber * 0.2)));
+          }
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          // draw resource field as low-contrast
+          if (UI.showResources.checked) {
+            const cellW = W / grid.w,
+              cellH = H / grid.h;
+            for (let y = 0; y < grid.h; y++) {
+              for (let x = 0; x < grid.w; x++) {
+                const v = clamp(grid.cells[y * grid.w + x], 0, 1);
+                if (v < 0.01) continue;
+                ctx.fillStyle = `rgba(20,120,80,${v * 0.16})`;
+                ctx.fillRect(x * cellW, y * cellH, cellW + 1, cellH + 1);
+              }
+            }
+          }
+
+          // draw signal fields
+          if (UI.showSignals.checked) {
+            for (const s of signals) {
+              const a = 1 - s.age / s.ttl;
+              const radius = s.shape.reach || 64;
+              const grd = ctx.createRadialGradient(
+                s.x,
+                s.y,
+                1,
+                s.x,
+                s.y,
+                radius
+              );
+              const col = `hsl(${s.ownerColor},80%,60%)`;
+              grd.addColorStop(0, `rgba(200,240,255,${0.22 * a})`);
+              grd.addColorStop(1, `rgba(160,200,255,${0.0})`);
+              ctx.fillStyle = grd;
+              ctx.beginPath();
+              ctx.arc(s.x, s.y, radius, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+
+          // draw agents
+          for (const a of population) {
+            // body
+            ctx.beginPath();
+            const r = a.genome.size;
+            ctx.fillStyle = `hsl(${a.genome.hue},65%,55%)`;
+            ctx.arc(a.x, a.y, r, 0, Math.PI * 2);
+            ctx.fill();
+            // energy ring
+            ctx.beginPath();
+            ctx.arc(
+              a.x,
+              a.y,
+              r + 2,
+              0,
+              Math.PI * 2 * (clamp(a.energy, 0, 1.6) / 1.6)
+            );
+            ctx.strokeStyle = "rgba(255,255,255,0.12)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            if (UI.showIDs.checked) {
+              ctx.fillStyle = "#fff";
+              ctx.font = "10px monospace";
+              ctx.fillText(a.id.slice(0, 3), a.x + 6, a.y - 6);
+            }
+            if (UI.traces && a.trace) {
+              ctx.beginPath();
+              for (let i = 0; i < a.trace.length; i++) {
+                const p = a.trace[i];
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+              }
+              ctx.strokeStyle = "rgba(255,255,255,0.06)";
+              ctx.stroke();
+            }
+          }
+
+          // HUD stats
+          ctx.fillStyle = "rgba(255,255,255,0.04)";
+          ctx.fillRect(8, 8, 260, 56);
+          ctx.fillStyle = "#cfefff";
+          ctx.font = "12px sans-serif";
+          ctx.fillText(`Agents: ${population.length}`, 18, 26);
+          const avgEnergy = (
+            population.reduce((s, a) => s + a.energy, 0) / population.length
+          ).toFixed(2);
+          ctx.fillText(`Avg energy: ${avgEnergy}`, 18, 44);
+        }
+
+        // main loop
+        function frame() {
+          const now = performance.now();
+          const dtMs = Math.min(60, now - last);
+          last = now;
+          if (running) for (let i = 0; i < 1; i++) step(dtMs / 16.6667); // normalized to ~60fps
+          draw();
+          // update sidebar stats
+          document.getElementById(
+            "stats"
+          ).textContent = `Agents: ${population.length} | Signals: ${signals.length} | Regen: ${UI.regen.value}`;
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+
+        // step once helper
+        function stepOnce() {
+          step(1);
+          draw();
+        }
+
+        // utility to find fittest
+        function getFittest() {
+          return population.reduce(
+            (best, a) => (best == null || a.energy > best.energy ? a : best),
+            null
+          );
+        }
+
+        // initial UI hookup: click canvas to inspect agent
+        canvas.addEventListener("click", (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          // find nearest agent
+          let near = null;
+          let nd = 1e9;
+          for (const a of population) {
+            const d = (a.x - x) * (a.x - x) + (a.y - y) * (a.y - y);
+            if (d < nd) {
+              nd = d;
+              near = a;
+            }
+          }
+          if (near && nd < 4000) {
+            UI.log.value = `Agent ${near.id}\nEnergy:${near.energy.toFixed(
+              2
+            )} Age:${Math.floor(near.age)}\nGenome:${JSON.stringify(
+              near.genome,
+              null,
+              2
+            )}`;
+          }
+        });
+
+        // basic mouse pan? (optional) - omitted to keep simple
+
+        // Start with a few exploratory presets
+        applyPreset("cultural");
+      })();
+    </script>
+  </body>
+</html>
