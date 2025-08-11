@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Memetic Evolution Simulator - Fun & Stable Edition</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap");
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: linear-gradient(135deg, #7bc4c4, #f7e9d7);
+        font-family: "Comic Neue", cursive, sans-serif;
+        user-select: none;
+      }
+      #infoPanel {
+        position: fixed;
+        right: 15px;
+        top: 15px;
+        width: 350px;
+        max-height: 90vh;
+        overflow-y: auto;
+        background: rgba(255 255 255 / 0.9);
+        padding: 18px 22px;
+        border-radius: 14px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        font-size: 14px;
+        color: #2a2a2a;
+        line-height: 1.3;
+      }
+      #controls {
+        position: fixed;
+        left: 15px;
+        top: 15px;
+        display: flex;
+        gap: 12px;
+        z-index: 10;
+      }
+      button {
+        background: #ff6f61;
+        color: #fff;
+        border: none;
+        padding: 10px 18px;
+        font-weight: 700;
+        font-size: 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 8px #ff6f61aa;
+        transition: background 0.35s ease;
+      }
+      button:hover:not(:disabled) {
+        background: #ff4a39;
+        box-shadow: 0 6px 12px #ff4a39cc;
+      }
+      button:disabled {
+        background: #f0a59c;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+      canvas {
+        display: block;
+        background: transparent;
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      /* Bubble background */
+      .bubble {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255 255 255 / 0.3);
+        animation: floatUp linear infinite;
+        pointer-events: none;
+      }
+      @keyframes floatUp {
+        0% {
+          transform: translateY(100vh) scale(0.5);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.7;
+        }
+        100% {
+          transform: translateY(-20vh) scale(1);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+
+    <div id="controls">
+      <button id="nextGenBtn" disabled>Breed Selected Agents</button>
+      <button id="randomizeBtn">Restart Simulation</button>
+    </div>
+
+    <div id="infoPanel"><i>Select agents to see details here</i></div>
+
+    <script>
+      (() => {
+        // Setup canvas
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        let W = window.innerWidth;
+        let H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+
+        // Constants
+        const AGENT_COUNT = 30;
+        const MAX_ROUTINE_LEN = 6;
+        const SOCIAL_RADIUS = 130;
+        const SELECTION_RADIUS = 45; // Larger click radius
+        const DRAG_RADIUS = 45;
+
+        // Utility
+        function randRange(min, max) {
+          return Math.random() * (max - min) + min;
+        }
+        function dist(a, b) {
+          return Math.hypot(a.x - b.x, a.y - b.y);
+        }
+        function choose(arr) {
+          return arr[Math.floor(Math.random() * arr.length)];
+        }
+        function hsl(h, s, l) {
+          return `hsl(${h},${s}%,${l}%)`;
+        }
+        function easeInOut(t) {
+          return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        } // ease in-out quad
+
+        // Names
+        const firstNames = [
+          "Zara",
+          "Kilo",
+          "Mira",
+          "Rex",
+          "Nova",
+          "Lumo",
+          "Vex",
+          "Suri",
+          "Tiko",
+          "Pax",
+          "Juno",
+          "Rani",
+          "Lex",
+          "Zeke",
+          "Nia",
+        ];
+        const lastNames = [
+          "Flint",
+          "Quill",
+          "Storm",
+          "Frost",
+          "Drift",
+          "Blaze",
+          "Shade",
+          "Breeze",
+          "Stone",
+          "Ash",
+          "Wisp",
+          "Glide",
+          "Vine",
+          "Echo",
+          "Fang",
+        ];
+        function randomName() {
+          return choose(firstNames) + " " + choose(lastNames);
+        }
+
+        // Appearance
+        function randomAppearance() {
+          return {
+            bodyHue: Math.floor(randRange(0, 360)),
+            accentHue: Math.floor(randRange(0, 360)),
+            eyeHue: Math.floor(randRange(180, 360)),
+            shape: choose(["round", "tall", "wide", "slim", "diamond"]),
+            sizeFactor: randRange(0.75, 1.25),
+            limbLengths: {
+              arm: randRange(0.55, 0.85),
+              leg: randRange(0.6, 0.9),
+            },
+            accessory: {
+              hat: choose(["none", "cap", "cone", "beanie", "halo"]),
+              tail: Math.random() < 0.38,
+              antenna: Math.random() < 0.38,
+              scarf: Math.random() < 0.3,
+            },
+          };
+        }
+        function mixAppear(a, b) {
+          return {
+            bodyHue: (a.bodyHue + b.bodyHue) / 2 + randRange(-15, 15),
+            accentHue: (a.accentHue + b.accentHue) / 2 + randRange(-15, 15),
+            eyeHue: (a.eyeHue + b.eyeHue) / 2 + randRange(-15, 15),
+            shape: Math.random() < 0.5 ? a.shape : b.shape,
+            sizeFactor:
+              ((a.sizeFactor + b.sizeFactor) / 2) * randRange(0.9, 1.1),
+            limbLengths: {
+              arm:
+                ((a.limbLengths.arm + b.limbLengths.arm) / 2) *
+                randRange(0.9, 1.1),
+              leg:
+                ((a.limbLengths.leg + b.limbLengths.leg) / 2) *
+                randRange(0.9, 1.1),
+            },
+            accessory: {
+              hat: Math.random() < 0.5 ? a.accessory.hat : b.accessory.hat,
+              tail: Math.random() < 0.5 ? a.accessory.tail : b.accessory.tail,
+              antenna:
+                Math.random() < 0.5 ? a.accessory.antenna : b.accessory.antenna,
+              scarf:
+                Math.random() < 0.5 ? a.accessory.scarf : b.accessory.scarf,
+            },
+          };
+        }
+
+        // Moves with fun animations
+        const Moves = {
+          idle: {
+            name: "Idle",
+            baseDuration: 3200,
+            update(agent, t) {
+              let easeT = easeInOut(t);
+              agent.pose.arm = 0.12 * Math.sin(t * Math.PI * 2);
+              agent.pose.arm2 = -agent.pose.arm;
+              agent.pose.leg = 0.07 * Math.sin(t * Math.PI * 2.5);
+              agent.pose.bodyBend = 0.05 * Math.sin(t * Math.PI);
+              agent.pose.eyeOpen = 1 - 0.15 * Math.sin(t * Math.PI * 2);
+              agent.pose.headTilt = 0.06 * Math.sin(t * Math.PI * 3);
+              // Subtle bounce
+              agent.bounce = 2 + 2 * easeT;
+            },
+          },
+          wave: {
+            name: "Wave",
+            baseDuration: 2200,
+            update(agent, t) {
+              let easeT = easeInOut(t);
+              agent.pose.arm2 = easeT * 1.0 * Math.sin(t * Math.PI * 6);
+              agent.pose.arm = 0;
+              agent.pose.leg = 0.05 * Math.sin(t * Math.PI * 8);
+              agent.pose.bodyBend = 0.07 * Math.sin(t * Math.PI * 4);
+              agent.pose.eyeOpen = 1;
+              agent.pose.headTilt = 0.1 * Math.sin(t * Math.PI * 4);
+              agent.bounce = 3 + 2 * easeT;
+            },
+          },
+          nod: {
+            name: "Nod",
+            baseDuration: 1400,
+            update(agent, t) {
+              let easeT = easeInOut(t);
+              agent.pose.headTilt = 0.3 * Math.sin(t * Math.PI * 6);
+              agent.pose.arm = 0;
+              agent.pose.arm2 = 0;
+              agent.pose.leg = 0;
+              agent.pose.bodyBend = 0;
+              agent.pose.eyeOpen = 1;
+              agent.bounce = 2 + 2 * easeT;
+            },
+          },
+          dance: {
+            name: "Boogie Woogie",
+            baseDuration: 3500,
+            update(agent, t, ctx) {
+              let easeT = easeInOut(t);
+              agent.pose.arm = Math.sin(t * Math.PI * 10) * 0.8;
+              agent.pose.arm2 = -agent.pose.arm;
+              agent.pose.leg = Math.sin(t * Math.PI * 7) * 0.8;
+              agent.pose.bodyBend = 0.15 * Math.sin(t * Math.PI * 5);
+              agent.pose.headTilt = 0.1 * Math.sin(t * Math.PI * 10);
+              agent.pose.eyeOpen = 1;
+              if (!agent.dragging) {
+                agent.vel.x += 0.12 * Math.sin(t * Math.PI * 15);
+                agent.vel.y += 0.12 * Math.cos(t * Math.PI * 11);
+              }
+              agent.bounce = 5 + 5 * easeT;
+            },
+          },
+          greet: {
+            name: "Greet",
+            baseDuration: 2500,
+            update(agent, t, ctx) {
+              let easeT = easeInOut(t);
+              agent.pose.arm2 = t < 0.5 ? t * 2 : (1 - t) * 2;
+              agent.pose.arm = 0;
+              agent.pose.leg = 0;
+              agent.pose.bodyBend = 0;
+              agent.pose.headTilt = 0;
+              agent.pose.eyeOpen = 1;
+              agent.bounce = 3 + 2 * easeT;
+            },
+          },
+          mimicNeighbor: {
+            name: "Mimic Neighbor",
+            baseDuration: 3200,
+            update(agent, t, ctx) {
+              let neighbor = findNearbyAgent(agent, ctx);
+              if (neighbor) {
+                let moveName =
+                  neighbor.routine[neighbor.currentMoveIdx] || "idle";
+                let move = Moves[moveName];
+                if (move) move.update(agent, t, ctx);
+                agent.pose.eyeOpen = 1;
+                agent.bounce = 2 + 3 * t;
+              } else {
+                Moves.idle.update(agent, t, ctx);
+              }
+            },
+          },
+          chase: {
+            name: "Sneaky Tiptoe Chase",
+            baseDuration: 4000,
+            update(agent, t, ctx) {
+              let target = findNearbyAgent(agent, ctx, true);
+              if (target) {
+                let dx = target.pos.x - agent.pos.x;
+                let dy = target.pos.y - agent.pos.y;
+                let distT = Math.sqrt(dx * dx + dy * dy);
+                if (distT > 5) {
+                  agent.vel.x += (dx / distT) * 0.28;
+                  agent.vel.y += (dy / distT) * 0.28;
+                }
+                agent.pose.arm = 0.8 * Math.sin(t * Math.PI * 15);
+                agent.pose.arm2 = agent.pose.arm / 2;
+                agent.pose.leg = 1 * Math.sin(t * Math.PI * 15);
+                agent.pose.bodyBend = 0.22;
+                agent.pose.headTilt = 0;
+                agent.pose.eyeOpen = 1;
+                agent.bounce = 5 + 7 * t;
+              } else {
+                Moves.idle.update(agent, t, ctx);
+              }
+            },
+          },
+          groupDance: {
+            name: "Group Dance",
+            baseDuration: 5000,
+            update(agent, t, ctx) {
+              let phase = (performance.now() / 400 + agent.id) % 2;
+              agent.pose.arm =
+                Math.sin(t * Math.PI * 7 + phase * Math.PI) * 0.8;
+              agent.pose.arm2 = -agent.pose.arm;
+              agent.pose.leg =
+                Math.sin(t * Math.PI * 5 + phase * Math.PI) * 0.75;
+              agent.pose.bodyBend = 0.1 * Math.sin(t * Math.PI * 5);
+              agent.pose.headTilt = 0.15 * Math.sin(t * Math.PI * 10);
+              agent.pose.eyeOpen = 1;
+              agent.bounce = 4 + 4 * t;
+              agent._bonding = true;
+            },
+          },
+          facepalm: {
+            name: "Facepalm",
+            baseDuration: 2300,
+            update(agent, t, ctx) {
+              // Left arm covers face awkwardly
+              if (t < 0.7) {
+                agent.pose.arm = -1.4 * (t / 0.7);
+                agent.pose.arm2 = 0;
+              } else {
+                agent.pose.arm = -1.4 * (1 - (t - 0.7) / 0.3);
+                agent.pose.arm2 = 0;
+              }
+              agent.pose.leg = 0;
+              agent.pose.bodyBend = 0.15 * Math.sin(t * Math.PI * 4);
+              agent.pose.eyeOpen = 1 - 0.6 * Math.sin(t * Math.PI * 8);
+              agent.pose.headTilt = 0.2;
+              agent.bounce = 1 + 1.5 * t;
+            },
+          },
+          highFive: {
+            name: "High Five",
+            baseDuration: 1800,
+            update(agent, t, ctx) {
+              let neighbor = findNearbyAgent(agent, ctx);
+              if (
+                neighbor &&
+                !agent._didHighFive &&
+                dist(agent.pos, neighbor.pos) < 45
+              ) {
+                if (t < 0.5) {
+                  agent.pose.arm2 = t * 2;
+                  neighbor.pose.arm = t * 2;
+                } else {
+                  agent.pose.arm2 = (1 - t) * 2;
+                  neighbor.pose.arm = (1 - t) * 2;
+                }
+                if (t >= 1) {
+                  agent._didHighFive = true;
+                  neighbor._didHighFive = true;
+                }
+                agent.bounce = 6 + 3 * t;
+              } else {
+                Moves.idle.update(agent, t, ctx);
+              }
+            },
+          },
+          groupPushOut: {
+            name: "Group Rivalry Push",
+            baseDuration: 2800,
+            update(agent, t, ctx) {
+              let rivals = ctx.agents.filter((a) => {
+                if (a === agent) return false;
+                if (dist(a.pos, agent.pos) > SOCIAL_RADIUS / 1.5) return false;
+                return !similarAppearance(agent.appearance, a.appearance);
+              });
+              rivals.forEach((rival) => {
+                let dx = rival.pos.x - agent.pos.x;
+                let dy = rival.pos.y - agent.pos.y;
+                let distR = Math.sqrt(dx * dx + dy * dy);
+                if (distR < SOCIAL_RADIUS / 1.5 && distR > 0) {
+                  let push = (1 - distR / (SOCIAL_RADIUS / 1.5)) * 2;
+                  rival.pos.x += (dx / distR) * push * t * 4;
+                  rival.pos.y += (dy / distR) * push * t * 4;
+                  agent.pos.x -= (dx / distR) * push * t * 2;
+                  agent.pos.y -= (dy / distR) * push * t * 2;
+                }
+              });
+              agent.pose.arm = t < 0.5 ? 1.3 : -1.3;
+              agent.pose.arm2 = -agent.pose.arm;
+              agent.pose.leg = 0.22 * Math.sin(t * Math.PI * 6);
+              agent.pose.bodyBend = -0.15;
+              agent.pose.headTilt = 0;
+              agent.pose.eyeOpen = 1;
+              agent.bounce = 2 + 2 * t;
+            },
+          },
+        };
+
+        function similarAppearance(a, b) {
+          return (
+            Math.abs(a.bodyHue - b.bodyHue) < 25 &&
+            Math.abs(a.accentHue - b.accentHue) < 25
+          );
+        }
+
+        // Find nearby agent within social radius (default nearest, or random if prefer)
+        function findNearbyAgent(agent, ctx, chase = false) {
+          let candidates = ctx.agents.filter(
+            (a) => a !== agent && dist(agent.pos, a.pos) < SOCIAL_RADIUS
+          );
+          if (candidates.length === 0) return null;
+          if (chase)
+            return candidates.reduce((p, c) =>
+              dist(agent.pos, c.pos) < dist(agent.pos, p.pos) ? c : p
+            );
+          return choose(candidates);
+        }
+
+        // Agent class
+        class Agent {
+          constructor(id, parentIds = []) {
+            this.id = id;
+            this.name = randomName();
+            this.parentIds = parentIds;
+            this.appearance = randomAppearance();
+            this.personality = {
+              speed: randRange(0.9, 1.4),
+              socialBias: randRange(0.5, 1.5),
+              playfulness: randRange(0.5, 1.5),
+              dominance: randRange(0.5, 1.5),
+              curiosity: randRange(0.5, 1.5),
+            };
+            this.radius = 25 * this.appearance.sizeFactor;
+            this.pos = {
+              x: randRange(this.radius, W - this.radius),
+              y: randRange(this.radius, H - this.radius),
+            };
+            this.vel = { x: 0, y: 0 };
+            this.selected = false;
+            this.dragging = false;
+            this.bounce = 0;
+
+            this.routine = this.generateRoutine();
+            this.currentMoveIdx = 0;
+            this.currentMoveStart = performance.now();
+
+            this.pose = {
+              arm: 0,
+              arm2: 0,
+              leg: 0,
+              bodyBend: 0,
+              eyeOpen: 1,
+              headTilt: 0,
+            };
+            this._bonding = false;
+            this._didHighFive = false;
+          }
+          generateRoutine() {
+            let moveKeys = Object.keys(Moves);
+            let routine = [];
+            for (let i = 0; i < MAX_ROUTINE_LEN; i++) {
+              routine.push(choose(moveKeys));
+            }
+            return routine;
+          }
+          startMove(idx) {
+            this.currentMoveIdx = idx % this.routine.length;
+            this.currentMoveStart = performance.now();
+            this._bonding = false;
+            this._didHighFive = false;
+          }
+          update(ctx) {
+            let moveKey = this.routine[this.currentMoveIdx];
+            let move = Moves[moveKey] || Moves.idle;
+            let elapsed = performance.now() - this.currentMoveStart;
+            let t = Math.min(elapsed / move.baseDuration, 1);
+
+            // Reset pose
+            this.pose.arm = 0;
+            this.pose.arm2 = 0;
+            this.pose.leg = 0;
+            this.pose.bodyBend = 0;
+            this.pose.eyeOpen = 1;
+            this.pose.headTilt = 0;
+
+            move.update(this, t, ctx);
+
+            if (t >= 1) {
+              this.startMove(this.currentMoveIdx + 1);
+            }
+
+            // Personality affects velocity damping
+            this.vel.x *= 0.91;
+            this.vel.y *= 0.91;
+
+            // Limit velocity by personality speed
+            let speedLimit = this.personality.speed * 2.5;
+            let speed = Math.sqrt(
+              this.vel.x * this.vel.x + this.vel.y * this.vel.y
+            );
+            if (speed > speedLimit) {
+              this.vel.x *= speedLimit / speed;
+              this.vel.y *= speedLimit / speed;
+            }
+
+            // Position update
+            if (!this.dragging) {
+              this.pos.x += this.vel.x;
+              this.pos.y += this.vel.y;
+            }
+
+            // Boundary clamp
+            this.pos.x = Math.min(
+              Math.max(this.radius, this.pos.x),
+              W - this.radius
+            );
+            this.pos.y = Math.min(
+              Math.max(this.radius, this.pos.y),
+              H - this.radius
+            );
+
+            // Keep agents from overlapping by small repulsion
+            for (let other of ctx.agents) {
+              if (other === this) continue;
+              let d = dist(this.pos, other.pos);
+              if (d < this.radius + other.radius && d > 0) {
+                let overlap = this.radius + other.radius - d;
+                let dx = ((this.pos.x - other.pos.x) / d) * overlap * 0.06;
+                let dy = ((this.pos.y - other.pos.y) / d) * overlap * 0.06;
+                this.vel.x += dx;
+                this.vel.y += dy;
+                other.vel.x -= dx;
+                other.vel.y -= dy;
+              }
+            }
+          }
+          draw(ctx) {
+            ctx.save();
+            ctx.translate(
+              this.pos.x,
+              this.pos.y +
+                Math.sin(performance.now() / 250 + this.id) * this.bounce * 0.3
+            );
+
+            let size = this.radius;
+            let ap = this.appearance;
+            let p = this.pose;
+
+            // Soft shadow glow for pop
+            ctx.shadowColor = `rgba(0,0,0,0.15)`;
+            ctx.shadowBlur = 12;
+
+            // Body base
+            ctx.fillStyle = hsl(ap.bodyHue, 68, 55);
+            ctx.beginPath();
+
+            switch (ap.shape) {
+              case "round":
+                ctx.ellipse(0, 0, size * 1.4, size * 1.9, 0, 0, Math.PI * 2);
+                break;
+              case "tall":
+                ctx.ellipse(0, 0, size * 1.15, size * 2.3, 0, 0, Math.PI * 2);
+                break;
+              case "wide":
+                ctx.ellipse(0, 0, size * 1.8, size * 1.25, 0, 0, Math.PI * 2);
+                break;
+              case "slim":
+                ctx.ellipse(0, 0, size * 1.0, size * 2.1, 0, 0, Math.PI * 2);
+                break;
+              case "diamond":
+                ctx.moveTo(0, -size * 2.1);
+                ctx.lineTo(size * 1.4, 0);
+                ctx.lineTo(0, size * 2.1);
+                ctx.lineTo(-size * 1.4, 0);
+                ctx.closePath();
+                break;
+              default:
+                ctx.ellipse(0, 0, size * 1.4, size * 1.9, 0, 0, Math.PI * 2);
+            }
+            ctx.fill();
+
+            // Belly patch
+            ctx.fillStyle = hsl(ap.accentHue, 75, 75);
+            ctx.beginPath();
+            ctx.ellipse(
+              0,
+              size * 0.65,
+              size * 0.8,
+              size * 0.5,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+
+            // Head
+            ctx.fillStyle = hsl(ap.bodyHue, 78, 62);
+            ctx.beginPath();
+            ctx.ellipse(
+              0,
+              -size * 1.65,
+              size * 1.1,
+              size * 1.1,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+
+            // Eyes big & expressive
+            ctx.fillStyle = hsl(ap.eyeHue, 85, 82);
+            let eyeX = size * 0.48;
+            let eyeY = -size * 1.7;
+            let eyeOpen = p.eyeOpen;
+            ctx.beginPath();
+            ctx.ellipse(
+              -eyeX,
+              eyeY,
+              size * 0.25,
+              size * 0.18 * eyeOpen,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.ellipse(
+              eyeX,
+              eyeY,
+              size * 0.25,
+              size * 0.18 * eyeOpen,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+
+            // Pupils
+            ctx.fillStyle = "#222";
+            ctx.beginPath();
+            // Add a bit of random pupil movement for personality
+            let pupilOffsetX =
+              Math.sin(performance.now() / 500 + this.id) * 0.06 * size;
+            ctx.ellipse(
+              -eyeX + pupilOffsetX,
+              eyeY,
+              size * 0.12,
+              size * 0.12 * eyeOpen,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.ellipse(
+              eyeX + pupilOffsetX,
+              eyeY,
+              size * 0.12,
+              size * 0.12 * eyeOpen,
+              0,
+              0,
+              Math.PI * 2
+            );
+            ctx.fill();
+
+            // Eyebrows for personality (animated)
+            ctx.strokeStyle = hsl(ap.accentHue, 90, 35);
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(
+              -eyeX - size * 0.15,
+              eyeY - size * 0.26 + p.headTilt * size * 3
+            );
+            ctx.quadraticCurveTo(
+              -eyeX,
+              eyeY - size * 0.5 + p.headTilt * size * 3,
+              -eyeX + size * 0.12,
+              eyeY - size * 0.28 + p.headTilt * size * 3
+            );
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(
+              eyeX - size * 0.12,
+              eyeY - size * 0.28 + p.headTilt * size * 3
+            );
+            ctx.quadraticCurveTo(
+              eyeX,
+              eyeY - size * 0.52 + p.headTilt * size * 3,
+              eyeX + size * 0.15,
+              eyeY - size * 0.26 + p.headTilt * size * 3
+            );
+            ctx.stroke();
+
+            // Neck and body bend rotation
+            ctx.rotate(p.bodyBend);
+
+            // Arms - fixed length and position
+            let armLen = size * 0.95 * ap.limbLengths.arm;
+            ctx.strokeStyle = hsl(ap.accentHue, 92, 62);
+            ctx.lineWidth = 6;
+            ctx.lineCap = "round";
+
+            // Left arm
+            ctx.save();
+            ctx.translate(-size * 0.72, -size * 0.28);
+            ctx.rotate(p.arm);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, -armLen);
+            ctx.stroke();
+            ctx.restore();
+
+            // Right arm
+            ctx.save();
+            ctx.translate(size * 0.72, -size * 0.28);
+            ctx.rotate(p.arm2);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, -armLen);
+            ctx.stroke();
+            ctx.restore();
+
+            // Legs - fixed length
+            let legLen = size * 1.25 * ap.limbLengths.leg;
+            ctx.strokeStyle = hsl(ap.bodyHue, 75, 38);
+            ctx.lineWidth = 7;
+            ctx.lineCap = "round";
+
+            // Left leg
+            ctx.save();
+            ctx.translate(-size * 0.5, size * 1.15);
+            ctx.rotate(p.leg);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, legLen);
+            ctx.stroke();
+            ctx.restore();
+
+            // Right leg
+            ctx.save();
+            ctx.translate(size * 0.5, size * 1.15);
+            ctx.rotate(-p.leg);
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, legLen);
+            ctx.stroke();
+            ctx.restore();
+
+            // Accessories
+            if (ap.accessory.hat !== "none") {
+              ctx.fillStyle = hsl(ap.accentHue, 85, 58);
+              ctx.beginPath();
+              let hatWidth = size * 1.3;
+              let hatHeight = size * 0.55;
+              switch (ap.accessory.hat) {
+                case "cap":
+                  ctx.moveTo(-hatWidth / 2, -size * 2.1);
+                  ctx.lineTo(hatWidth / 2, -size * 2.1);
+                  ctx.lineTo(0, -size * 2.9);
+                  ctx.closePath();
+                  break;
+                case "cone":
+                  ctx.moveTo(0, -size * 2.9);
+                  ctx.lineTo(hatWidth / 2, -size * 2.1);
+                  ctx.lineTo(-hatWidth / 2, -size * 2.1);
+                  ctx.closePath();
+                  break;
+                case "beanie":
+                  ctx.ellipse(
+                    0,
+                    -size * 2.5,
+                    hatWidth / 2,
+                    hatHeight / 1.7,
+                    0,
+                    0,
+                    Math.PI * 2
+                  );
+                  break;
+                case "halo":
+                  ctx.ellipse(
+                    0,
+                    -size * 2.95,
+                    hatWidth / 2,
+                    hatHeight / 6,
+                    0,
+                    0,
+                    Math.PI * 2
+                  );
+                  break;
+              }
+              ctx.fill();
+            }
+
+            // Tail
+            if (ap.accessory.tail) {
+              ctx.strokeStyle = hsl(ap.accentHue, 95, 53);
+              ctx.lineWidth = 5;
+              ctx.beginPath();
+              ctx.moveTo(0, size * 1.75);
+              let tailSwing =
+                Math.sin(performance.now() / 300 + this.id) * size * 0.6;
+              ctx.quadraticCurveTo(tailSwing, size * 2.3, 0, size * 2.6);
+              ctx.stroke();
+            }
+
+            // Antenna
+            if (ap.accessory.antenna) {
+              ctx.strokeStyle = hsl(ap.accentHue, 95, 78);
+              ctx.lineWidth = 4;
+              ctx.beginPath();
+              ctx.moveTo(-size * 0.35, -size * 2.1);
+              ctx.lineTo(-size * 0.35, -size * 2.8);
+              ctx.moveTo(size * 0.35, -size * 2.1);
+              ctx.lineTo(size * 0.35, -size * 2.8);
+              ctx.stroke();
+            }
+
+            // Scarf
+            if (ap.accessory.scarf) {
+              ctx.fillStyle = hsl(ap.accentHue, 75, 46);
+              ctx.beginPath();
+              ctx.ellipse(
+                0,
+                -size * 0.55,
+                size * 0.85,
+                size * 0.3,
+                0,
+                0,
+                Math.PI * 2
+              );
+              ctx.fill();
+            }
+
+            // Face - goofy smile (animated)
+            ctx.strokeStyle = "black";
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            // Smile arcs up and down with bounce
+            let smileAmp = 4 + 2 * Math.sin(performance.now() / 350 + this.id);
+            ctx.moveTo(-size * 0.45, -size * 1.1);
+            ctx.quadraticCurveTo(
+              0,
+              -size * 1.1 + smileAmp,
+              size * 0.45,
+              -size * 1.1
+            );
+            ctx.stroke();
+
+            // Highlight if selected
+            if (this.selected) {
+              ctx.strokeStyle = "#ffb732";
+              ctx.lineWidth = 4;
+              ctx.shadowColor = "rgba(255,183,50,0.8)";
+              ctx.shadowBlur = 14;
+              ctx.beginPath();
+              ctx.ellipse(0, 0, size * 1.7, size * 2.4, 0, 0, Math.PI * 2);
+              ctx.stroke();
+              ctx.shadowBlur = 0;
+            }
+
+            ctx.restore();
+          }
+        }
+
+        // Simulation class
+        class Simulation {
+          constructor() {
+            this.agents = [];
+            this.selectedAgents = new Set();
+            this.lastSelectedAgent = null;
+
+            this.mouse = { x: 0, y: 0, down: false };
+            this.draggingAgent = null;
+            this.dragOffset = { x: 0, y: 0 };
+
+            this.infoDiv = document.getElementById("infoPanel");
+            this.nextGenBtn = document.getElementById("nextGenBtn");
+            this.randomizeBtn = document.getElementById("randomizeBtn");
+
+            this.nextGenBtn.addEventListener("click", () =>
+              this.breedSelected()
+            );
+            this.randomizeBtn.addEventListener("click", () =>
+              this.restartSimulation()
+            );
+
+            canvas.addEventListener("mousedown", (e) => this.onMouseDown(e));
+            canvas.addEventListener("mousemove", (e) => this.onMouseMove(e));
+            canvas.addEventListener("mouseup", (e) => this.onMouseUp(e));
+            canvas.addEventListener("mouseleave", (e) => this.onMouseLeave(e));
+
+            window.addEventListener("resize", () => {
+              W = window.innerWidth;
+              H = window.innerHeight;
+              canvas.width = W;
+              canvas.height = H;
+            });
+
+            this.restartSimulation();
+            this.loop();
+          }
+
+          restartSimulation() {
+            this.agents = [];
+            this.selectedAgents.clear();
+            this.lastSelectedAgent = null;
+            this.nextGenBtn.disabled = true;
+            this.infoDiv.innerHTML = `<i>Simulation restarted. Select agents to see details.</i>`;
+            for (let i = 0; i < AGENT_COUNT; i++) {
+              this.agents.push(new Agent(i));
+            }
+          }
+
+          onMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            this.mouse.x = e.clientX - rect.left;
+            this.mouse.y = e.clientY - rect.top;
+            this.mouse.down = true;
+
+            // Check agents under mouse from top to bottom (last drawn first)
+            for (let i = this.agents.length - 1; i >= 0; i--) {
+              const a = this.agents[i];
+              if (dist(a.pos, this.mouse) < SELECTION_RADIUS) {
+                // Toggle selection
+                if (this.selectedAgents.has(a)) {
+                  this.selectedAgents.delete(a);
+                  a.selected = false;
+                  // Update info to last selected or clear if none
+                  if (this.selectedAgents.size === 0) {
+                    this.infoDiv.innerHTML = `<i>No agents selected</i>`;
+                    this.lastSelectedAgent = null;
+                  } else if (this.lastSelectedAgent === a) {
+                    this.lastSelectedAgent = [...this.selectedAgents][
+                      this.selectedAgents.size - 1
+                    ];
+                    this.updateInfoPanel(this.lastSelectedAgent);
+                  }
+                } else {
+                  this.selectedAgents.add(a);
+                  a.selected = true;
+                  this.lastSelectedAgent = a;
+                  this.updateInfoPanel(a);
+                }
+                this.nextGenBtn.disabled = this.selectedAgents.size === 0;
+
+                // Prepare drag
+                this.draggingAgent = a;
+                this.dragOffset.x = a.pos.x - this.mouse.x;
+                this.dragOffset.y = a.pos.y - this.mouse.y;
+                a.dragging = true;
+                return;
+              }
+            }
+            // If clicked empty space, clear selection
+            this.selectedAgents.forEach((a) => (a.selected = false));
+            this.selectedAgents.clear();
+            this.lastSelectedAgent = null;
+            this.nextGenBtn.disabled = true;
+            this.infoDiv.innerHTML = `<i>No agents selected</i>`;
+          }
+
+          onMouseMove(e) {
+            if (!this.mouse.down) return;
+            const rect = canvas.getBoundingClientRect();
+            this.mouse.x = e.clientX - rect.left;
+            this.mouse.y = e.clientY - rect.top;
+
+            if (this.draggingAgent) {
+              this.draggingAgent.pos.x = this.mouse.x + this.dragOffset.x;
+              this.draggingAgent.pos.y = this.mouse.y + this.dragOffset.y;
+
+              // Clamp inside canvas
+              this.draggingAgent.pos.x = Math.min(
+                Math.max(this.draggingAgent.radius, this.draggingAgent.pos.x),
+                W - this.draggingAgent.radius
+              );
+              this.draggingAgent.pos.y = Math.min(
+                Math.max(this.draggingAgent.radius, this.draggingAgent.pos.y),
+                H - this.draggingAgent.radius
+              );
+            }
+          }
+
+          onMouseUp(e) {
+            this.mouse.down = false;
+            if (this.draggingAgent) {
+              this.draggingAgent.dragging = false;
+              this.draggingAgent = null;
+            }
+          }
+
+          onMouseLeave(e) {
+            this.mouse.down = false;
+            if (this.draggingAgent) {
+              this.draggingAgent.dragging = false;
+              this.draggingAgent = null;
+            }
+          }
+
+          breedSelected() {
+            if (this.selectedAgents.size === 0) return;
+
+            // Create children by crossover and mutation of selected agents
+            const parents = [...this.selectedAgents];
+            const newAgents = [];
+            for (let i = 0; i < AGENT_COUNT; i++) {
+              let mom = choose(parents);
+              let dad = choose(parents);
+              let childId = i;
+
+              // Mix appearance
+              let childAppearance = mixAppear(mom.appearance, dad.appearance);
+              // Mix personality
+              let childPersonality = {
+                speed:
+                  ((mom.personality.speed + dad.personality.speed) / 2) *
+                  randRange(0.9, 1.1),
+                socialBias:
+                  ((mom.personality.socialBias + dad.personality.socialBias) /
+                    2) *
+                  randRange(0.9, 1.1),
+                playfulness:
+                  ((mom.personality.playfulness + dad.personality.playfulness) /
+                    2) *
+                  randRange(0.9, 1.1),
+                dominance:
+                  ((mom.personality.dominance + dad.personality.dominance) /
+                    2) *
+                  randRange(0.9, 1.1),
+                curiosity:
+                  ((mom.personality.curiosity + dad.personality.curiosity) /
+                    2) *
+                  randRange(0.9, 1.1),
+              };
+              // New genome routine crossover + mutation
+              let childRoutine = [];
+              for (let j = 0; j < MAX_ROUTINE_LEN; j++) {
+                childRoutine[j] =
+                  Math.random() < 0.5 ? mom.routine[j] : dad.routine[j];
+                // Mutation: 20% chance to mutate a move
+                if (Math.random() < 0.2) {
+                  childRoutine[j] = choose(Object.keys(Moves));
+                }
+              }
+              // Create agent
+              let child = new Agent(childId, [mom.id, dad.id]);
+              child.name = randomName();
+              child.appearance = childAppearance;
+              child.personality = childPersonality;
+              child.routine = childRoutine;
+              child.radius = 25 * child.appearance.sizeFactor;
+              child.pos = {
+                x: randRange(child.radius, W - child.radius),
+                y: randRange(child.radius, H - child.radius),
+              };
+              newAgents.push(child);
+            }
+            this.agents = newAgents;
+            this.selectedAgents.clear();
+            this.lastSelectedAgent = null;
+            this.nextGenBtn.disabled = true;
+            this.infoDiv.innerHTML = `<i>New generation created! Select agents to see details.</i>`;
+          }
+
+          updateInfoPanel(agent) {
+            if (!agent) {
+              this.infoDiv.innerHTML = `<i>No agent selected</i>`;
+              return;
+            }
+            this.infoDiv.innerHTML = `
+        <b>Name:</b> ${agent.name}<br/>
+        <b>ID:</b> ${agent.id}<br/>
+        <b>Parents:</b> ${
+          agent.parentIds.length ? agent.parentIds.join(", ") : "None"
+        }<br/>
+        <b>Current Move:</b> ${
+          agent.routine[agent.currentMoveIdx] || "idle"
+        }<br/>
+        <b>Moveset:</b> ${agent.routine.join(", ")}<br/>
+        <b>Personality:</b><br/>
+        &nbsp;&nbsp;Speed: ${agent.personality.speed.toFixed(2)}<br/>
+        &nbsp;&nbsp;Social Bias: ${agent.personality.socialBias.toFixed(2)}<br/>
+        &nbsp;&nbsp;Playfulness: ${agent.personality.playfulness.toFixed(
+          2
+        )}<br/>
+        &nbsp;&nbsp;Dominance: ${agent.personality.dominance.toFixed(2)}<br/>
+        &nbsp;&nbsp;Curiosity: ${agent.personality.curiosity.toFixed(2)}<br/>
+        <b>Appearance:</b><br/>
+        &nbsp;&nbsp;Body Hue: ${Math.round(agent.appearance.bodyHue)}<br/>
+        &nbsp;&nbsp;Accent Hue: ${Math.round(agent.appearance.accentHue)}<br/>
+        &nbsp;&nbsp;Eye Hue: ${Math.round(agent.appearance.eyeHue)}<br/>
+        &nbsp;&nbsp;Shape: ${agent.appearance.shape}<br/>
+        &nbsp;&nbsp;Accessories: 
+        ${
+          agent.appearance.accessory.hat !== "none"
+            ? agent.appearance.accessory.hat + ", "
+            : ""
+        }
+        ${agent.appearance.accessory.tail ? "tail, " : ""}
+        ${agent.appearance.accessory.antenna ? "antenna, " : ""}
+        ${agent.appearance.accessory.scarf ? "scarf" : ""}
+      `.replace(/, $/, "");
+          }
+
+          update() {
+            for (let a of this.agents) a.update(this);
+          }
+
+          draw() {
+            ctx.clearRect(0, 0, W, H);
+            // Draw agents sorted by y for depth illusion
+            this.agents.sort((a, b) => a.pos.y - b.pos.y);
+            for (let a of this.agents) a.draw(ctx);
+          }
+
+          loop() {
+            this.update();
+            this.draw();
+            requestAnimationFrame(() => this.loop());
+          }
+        }
+
+        // Bubbles background effect for fun
+        function createBubbles(num) {
+          for (let i = 0; i < num; i++) {
+            const div = document.createElement("div");
+            div.classList.add("bubble");
+            div.style.width = div.style.height = `${randRange(10, 30)}px`;
+            div.style.left = `${randRange(0, W)}px`;
+            div.style.animationDuration = `${randRange(8000, 16000)}ms`;
+            div.style.animationDelay = `${-randRange(0, 16000)}ms`;
+            document.body.appendChild(div);
+          }
+        }
+        createBubbles(20);
+
+        // Start simulation
+        new Simulation();
+      })();
+    </script>
+  </body>
+</html>
