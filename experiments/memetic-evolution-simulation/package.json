@@ -1,0 +1,32 @@
+{
+  "name": "memetic-evolution-simulation",
+  "version": "1.0.0",
+  "description": "A simulation for cultural and memetic evolution where user-selected agents interact and evolve in a 3x3 grid environment.",
+  "main": "src/scripts/app.js",
+  "scripts": {
+    "start": "live-server src",
+    "build": "echo 'Build step not defined'",
+    "test": "echo 'Test step not defined'"
+  },
+  "keywords": [
+    "simulation",
+    "memetics",
+    "evolution",
+    "agents",
+    "interactive"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "live-server": "^1.2.1"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YourUsername/memetic-evolution-simulation.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YourUsername/memetic-evolution-simulation/issues"
+  },
+  "homepage": "https://github.com/YourUsername/memetic-evolution-simulation#readme"
+}
