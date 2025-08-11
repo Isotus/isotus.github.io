@@ -114,7 +114,7 @@
         canvas.height = H;
 
         // Constants
-        const AGENT_COUNT = 30;
+        const AGENT_COUNT = 10;
         const MAX_ROUTINE_LEN = 6;
         const SOCIAL_RADIUS = 130;
         const SELECTION_RADIUS = 45; // Larger click radius
@@ -226,213 +226,183 @@
         // Moves with fun animations
         const Moves = {
           idle: {
-            name: "Idle",
-            baseDuration: 3200,
-            update(agent, t) {
-              let easeT = easeInOut(t);
-              agent.pose.arm = 0.12 * Math.sin(t * Math.PI * 2);
-              agent.pose.arm2 = -agent.pose.arm;
-              agent.pose.leg = 0.07 * Math.sin(t * Math.PI * 2.5);
-              agent.pose.bodyBend = 0.05 * Math.sin(t * Math.PI);
-              agent.pose.eyeOpen = 1 - 0.15 * Math.sin(t * Math.PI * 2);
-              agent.pose.headTilt = 0.06 * Math.sin(t * Math.PI * 3);
-              // Subtle bounce
-              agent.bounce = 2 + 2 * easeT;
+            baseDuration: 2000,
+            update(agent, t, ctx) {
+              // Gentle breathing
+              agent.pose.bodyBend = 0.03 * Math.sin(t * Math.PI * 2);
+              agent.pose.eyeOpen = 0.9 + 0.1 * Math.sin(t * Math.PI * 4);
             },
           },
           wave: {
-            name: "Wave",
-            baseDuration: 2200,
-            update(agent, t) {
-              let easeT = easeInOut(t);
-              agent.pose.arm2 = easeT * 1.0 * Math.sin(t * Math.PI * 6);
-              agent.pose.arm = 0;
-              agent.pose.leg = 0.05 * Math.sin(t * Math.PI * 8);
-              agent.pose.bodyBend = 0.07 * Math.sin(t * Math.PI * 4);
-              agent.pose.eyeOpen = 1;
-              agent.pose.headTilt = 0.1 * Math.sin(t * Math.PI * 4);
-              agent.bounce = 3 + 2 * easeT;
-            },
-          },
-          nod: {
-            name: "Nod",
-            baseDuration: 1400,
-            update(agent, t) {
-              let easeT = easeInOut(t);
-              agent.pose.headTilt = 0.3 * Math.sin(t * Math.PI * 6);
-              agent.pose.arm = 0;
-              agent.pose.arm2 = 0;
-              agent.pose.leg = 0;
-              agent.pose.bodyBend = 0;
-              agent.pose.eyeOpen = 1;
-              agent.bounce = 2 + 2 * easeT;
-            },
-          },
-          dance: {
-            name: "Boogie Woogie",
-            baseDuration: 3500,
+            baseDuration: 1500,
             update(agent, t, ctx) {
-              let easeT = easeInOut(t);
-              agent.pose.arm = Math.sin(t * Math.PI * 10) * 0.8;
-              agent.pose.arm2 = -agent.pose.arm;
-              agent.pose.leg = Math.sin(t * Math.PI * 7) * 0.8;
-              agent.pose.bodyBend = 0.15 * Math.sin(t * Math.PI * 5);
-              agent.pose.headTilt = 0.1 * Math.sin(t * Math.PI * 10);
-              agent.pose.eyeOpen = 1;
-              if (!agent.dragging) {
-                agent.vel.x += 0.12 * Math.sin(t * Math.PI * 15);
-                agent.vel.y += 0.12 * Math.cos(t * Math.PI * 11);
-              }
-              agent.bounce = 5 + 5 * easeT;
+              // Wave right arm up and down
+              agent.pose.arm2 = Math.sin(t * Math.PI * 4) * 1.2;
+              if (t < 0.3) agent.bounce = 3 * t * 3;
+              else agent.bounce = 3 * (1 - t) * 3;
             },
           },
-          greet: {
-            name: "Greet",
-            baseDuration: 2500,
+          spin: {
+            baseDuration: 1000,
             update(agent, t, ctx) {
-              let easeT = easeInOut(t);
-              agent.pose.arm2 = t < 0.5 ? t * 2 : (1 - t) * 2;
-              agent.pose.arm = 0;
-              agent.pose.leg = 0;
-              agent.pose.bodyBend = 0;
-              agent.pose.headTilt = 0;
-              agent.pose.eyeOpen = 1;
-              agent.bounce = 3 + 2 * easeT;
+              // Spin whole body
+              agent.pose.bodyBend = t * Math.PI * 2;
+              agent.bounce = Math.sin(t * Math.PI * 4) * 3;
+              // Color flash effect
+              agent.flashColor = `hsl(${
+                (performance.now() / 10 + agent.id * 60) % 360
+              }, 100%, 75%)`;
             },
           },
-          mimicNeighbor: {
-            name: "Mimic Neighbor",
-            baseDuration: 3200,
+          jump: {
+            baseDuration: 1200,
             update(agent, t, ctx) {
-              let neighbor = findNearbyAgent(agent, ctx);
-              if (neighbor) {
-                let moveName =
-                  neighbor.routine[neighbor.currentMoveIdx] || "idle";
-                let move = Moves[moveName];
-                if (move) move.update(agent, t, ctx);
-                agent.pose.eyeOpen = 1;
-                agent.bounce = 2 + 3 * t;
-              } else {
-                Moves.idle.update(agent, t, ctx);
-              }
+              // Jump up and down
+              agent.bounce = Math.sin(t * Math.PI) * 15;
+              agent.pose.leg = Math.sin(t * Math.PI * 4) * 0.8;
+              agent.pose.arm = Math.cos(t * Math.PI * 4) * 0.8;
             },
           },
-          chase: {
-            name: "Sneaky Tiptoe Chase",
-            baseDuration: 4000,
-            update(agent, t, ctx) {
-              let target = findNearbyAgent(agent, ctx, true);
-              if (target) {
-                let dx = target.pos.x - agent.pos.x;
-                let dy = target.pos.y - agent.pos.y;
-                let distT = Math.sqrt(dx * dx + dy * dy);
-                if (distT > 5) {
-                  agent.vel.x += (dx / distT) * 0.28;
-                  agent.vel.y += (dy / distT) * 0.28;
-                }
-                agent.pose.arm = 0.8 * Math.sin(t * Math.PI * 15);
-                agent.pose.arm2 = agent.pose.arm / 2;
-                agent.pose.leg = 1 * Math.sin(t * Math.PI * 15);
-                agent.pose.bodyBend = 0.22;
-                agent.pose.headTilt = 0;
-                agent.pose.eyeOpen = 1;
-                agent.bounce = 5 + 7 * t;
-              } else {
-                Moves.idle.update(agent, t, ctx);
-              }
-            },
-          },
-          groupDance: {
-            name: "Group Dance",
-            baseDuration: 5000,
-            update(agent, t, ctx) {
-              let phase = (performance.now() / 400 + agent.id) % 2;
-              agent.pose.arm =
-                Math.sin(t * Math.PI * 7 + phase * Math.PI) * 0.8;
-              agent.pose.arm2 = -agent.pose.arm;
-              agent.pose.leg =
-                Math.sin(t * Math.PI * 5 + phase * Math.PI) * 0.75;
-              agent.pose.bodyBend = 0.1 * Math.sin(t * Math.PI * 5);
-              agent.pose.headTilt = 0.15 * Math.sin(t * Math.PI * 10);
-              agent.pose.eyeOpen = 1;
-              agent.bounce = 4 + 4 * t;
-              agent._bonding = true;
-            },
-          },
-          facepalm: {
-            name: "Facepalm",
-            baseDuration: 2300,
-            update(agent, t, ctx) {
-              // Left arm covers face awkwardly
-              if (t < 0.7) {
-                agent.pose.arm = -1.4 * (t / 0.7);
-                agent.pose.arm2 = 0;
-              } else {
-                agent.pose.arm = -1.4 * (1 - (t - 0.7) / 0.3);
-                agent.pose.arm2 = 0;
-              }
-              agent.pose.leg = 0;
-              agent.pose.bodyBend = 0.15 * Math.sin(t * Math.PI * 4);
-              agent.pose.eyeOpen = 1 - 0.6 * Math.sin(t * Math.PI * 8);
-              agent.pose.headTilt = 0.2;
-              agent.bounce = 1 + 1.5 * t;
-            },
-          },
-          highFive: {
-            name: "High Five",
+          bow: {
             baseDuration: 1800,
             update(agent, t, ctx) {
-              let neighbor = findNearbyAgent(agent, ctx);
-              if (
-                neighbor &&
-                !agent._didHighFive &&
-                dist(agent.pos, neighbor.pos) < 45
-              ) {
-                if (t < 0.5) {
-                  agent.pose.arm2 = t * 2;
-                  neighbor.pose.arm = t * 2;
-                } else {
-                  agent.pose.arm2 = (1 - t) * 2;
-                  neighbor.pose.arm = (1 - t) * 2;
-                }
-                if (t >= 1) {
-                  agent._didHighFive = true;
-                  neighbor._didHighFive = true;
-                }
-                agent.bounce = 6 + 3 * t;
+              // Bow down and up
+              agent.pose.bodyBend = Math.sin(t * Math.PI) * 0.6;
+              agent.pose.arm = -0.5;
+              agent.pose.arm2 = -0.5;
+              if (t > 0.9) agent.pose.eyeOpen = 0.3;
+            },
+          },
+          clap: {
+            baseDuration: 1400,
+            update(agent, t, ctx) {
+              // Arms come together clapping
+              let clapSpeed = 8;
+              agent.pose.arm =
+                Math.abs(Math.sin(t * Math.PI * clapSpeed)) * 1.5 - 0.5;
+              agent.pose.arm2 = agent.pose.arm;
+              // Add a small bounce on claps
+              agent.bounce = Math.abs(Math.sin(t * Math.PI * clapSpeed)) * 5;
+            },
+          },
+          antennaWave: {
+            baseDuration: 2000,
+            update(agent, t, ctx) {
+              // Waving antennae if present
+              if (agent.appearance.accessory.antenna) {
+                let swing = Math.sin(t * Math.PI * 4) * 0.5;
+                agent.pose.arm = swing;
+                agent.pose.arm2 = -swing;
+                agent.bounce = Math.sin(t * Math.PI * 2) * 2;
+              }
+            },
+          },
+          tailSwing: {
+            baseDuration: 1500,
+            update(agent, t, ctx) {
+              // Swing tail side to side, bounce body slightly
+              if (agent.appearance.accessory.tail) {
+                agent.bounce = Math.sin(t * Math.PI * 4) * 4;
+                // For visual tail swinging, we'll use a property for draw tail animation:
+                agent.tailSwing = Math.sin(t * Math.PI * 8) * 0.8;
+              }
+            },
+          },
+          hatTip: {
+            baseDuration: 1700,
+            update(agent, t, ctx) {
+              // If agent has hat, tip it down and up
+              if (agent.appearance.accessory.hat !== "none") {
+                agent.pose.headTilt = Math.sin(t * Math.PI) * 0.5;
+                agent.bounce = Math.sin(t * Math.PI * 2) * 2;
+              }
+            },
+          },
+          socialize: {
+            baseDuration: 3000,
+            update(agent, t, ctx) {
+              // Look for a nearby agent to interact with
+              let target = findNearbyAgent(agent, ctx);
+              if (!target) {
+                Moves.idle.update(agent, t, ctx);
+                return;
+              }
+              // Approach target slowly
+              let dx = target.pos.x - agent.pos.x;
+              let dy = target.pos.y - agent.pos.y;
+              let distToTarget = Math.sqrt(dx * dx + dy * dy);
+              if (distToTarget > agent.radius + target.radius + 10) {
+                let normX = dx / distToTarget;
+                let normY = dy / distToTarget;
+                agent.vel.x += normX * 0.1 * agent.personality.socialBias;
+                agent.vel.y += normY * 0.1 * agent.personality.socialBias;
+                agent.pose.arm = Math.sin(t * Math.PI * 8) * 0.5;
+                agent.pose.arm2 = Math.cos(t * Math.PI * 8) * 0.5;
+              } else {
+                // Near target: do a friendly gesture (wave + bounce)
+                agent.pose.arm2 = Math.sin(t * Math.PI * 6) * 1.3;
+                agent.bounce = Math.abs(Math.sin(t * Math.PI * 3)) * 6;
+              }
+            },
+          },
+          mimic: {
+            baseDuration: 2500,
+            update(agent, t, ctx) {
+              // Find another agent and mimic their current move (simple copy with delay)
+              let target = findNearbyAgent(agent, ctx);
+              if (target) {
+                let moveToMimic =
+                  target.routine[target.currentMoveIdx] || "idle";
+                let mimicT = (t + 0.2) % 1;
+                let move = Moves[moveToMimic] || Moves.idle;
+                move.update(agent, mimicT, ctx);
+                agent.bounce = Math.abs(Math.sin(mimicT * Math.PI * 6)) * 5;
               } else {
                 Moves.idle.update(agent, t, ctx);
               }
             },
           },
-          groupPushOut: {
-            name: "Group Rivalry Push",
-            baseDuration: 2800,
+          partyTime: {
+            baseDuration: 2000,
             update(agent, t, ctx) {
-              let rivals = ctx.agents.filter((a) => {
-                if (a === agent) return false;
-                if (dist(a.pos, agent.pos) > SOCIAL_RADIUS / 1.5) return false;
-                return !similarAppearance(agent.appearance, a.appearance);
-              });
-              rivals.forEach((rival) => {
-                let dx = rival.pos.x - agent.pos.x;
-                let dy = rival.pos.y - agent.pos.y;
-                let distR = Math.sqrt(dx * dx + dy * dy);
-                if (distR < SOCIAL_RADIUS / 1.5 && distR > 0) {
-                  let push = (1 - distR / (SOCIAL_RADIUS / 1.5)) * 2;
-                  rival.pos.x += (dx / distR) * push * t * 4;
-                  rival.pos.y += (dy / distR) * push * t * 4;
-                  agent.pos.x -= (dx / distR) * push * t * 2;
-                  agent.pos.y -= (dy / distR) * push * t * 2;
-                }
-              });
-              agent.pose.arm = t < 0.5 ? 1.3 : -1.3;
-              agent.pose.arm2 = -agent.pose.arm;
-              agent.pose.leg = 0.22 * Math.sin(t * Math.PI * 6);
-              agent.pose.bodyBend = -0.15;
-              agent.pose.headTilt = 0;
-              agent.pose.eyeOpen = 1;
-              agent.bounce = 2 + 2 * t;
+              // Fast dance with hat tip and color flashes
+              agent.pose.arm = Math.sin(t * Math.PI * 12) * 1.5;
+              agent.pose.arm2 = Math.cos(t * Math.PI * 12) * 1.5;
+              agent.pose.leg = Math.sin(t * Math.PI * 24) * 0.8;
+              if (agent.appearance.accessory.hat !== "none") {
+                agent.pose.headTilt = Math.sin(t * Math.PI * 12) * 0.5;
+              }
+              agent.bounce = Math.abs(Math.sin(t * Math.PI * 8)) * 8;
+
+              // Flash colors wildly
+              agent.flashColor = `hsl(${
+                (performance.now() / 5 + agent.id * 120) % 360
+              }, 90%, 60%)`;
+            },
+          },
+          flop: {
+            baseDuration: 2200,
+            update(agent, t, ctx) {
+              // Silly flop over animation
+              if (t < 0.5) {
+                agent.pose.bodyBend = t * 3;
+                agent.pose.eyeOpen = 1 - t * 2;
+                agent.bounce = Math.sin(t * Math.PI * 6) * 5;
+              } else {
+                agent.pose.bodyBend = (1 - t) * 3;
+                agent.pose.eyeOpen = (t - 0.5) * 2;
+                agent.bounce = Math.sin(t * Math.PI * 6) * 5;
+              }
+            },
+          },
+          twirl: {
+            baseDuration: 1600,
+            update(agent, t, ctx) {
+              // Spin & jump with arms extended
+              agent.pose.bodyBend = t * Math.PI * 2;
+              agent.pose.arm = Math.sin(t * Math.PI * 16) * 0.6;
+              agent.pose.arm2 = Math.cos(t * Math.PI * 16) * 0.6;
+              agent.bounce = Math.abs(Math.sin(t * Math.PI * 4)) * 10;
             },
           },
         };
