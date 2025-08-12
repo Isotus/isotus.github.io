@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Memetic Simulator - Extreme Variety</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #111;
+      }
+      canvas {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="sim"></canvas>
+    <script>
+      const canvas = document.getElementById("sim");
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      function rand(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      function rInt(min, max) {
+        return Math.floor(rand(min, max));
+      }
+      function choice(arr) {
+        return arr[rInt(0, arr.length)];
+      }
+
+      const shapes = [
+        "circle",
+        "square",
+        "triangle",
+        "pentagon",
+        "star",
+        "hexagon",
+        "octagon",
+        "blob",
+      ];
+      const eyeShapes = [
+        "round",
+        "oval",
+        "slit",
+        "cross",
+        "spiral",
+        "heart",
+        "square",
+        "triangle",
+      ];
+      const mouthShapes = [
+        "smile",
+        "frown",
+        "open",
+        "line",
+        "fangs",
+        "beak",
+        "o",
+        "zigzag",
+      ];
+      const accessories = [
+        "hat",
+        "glasses",
+        "mustache",
+        "bow",
+        "crown",
+        "earrings",
+        "scar",
+        "antenna",
+        "horns",
+        "cape",
+        "necklace",
+        "belt",
+      ];
+
+      const colors = Array.from(
+        { length: 200 },
+        (_, i) => `hsl(${i * 2}, ${50 + rand(0, 50)}%, ${30 + rand(0, 40)}%)`
+      );
+
+      class Agent {
+        constructor() {
+          this.x = rand(50, canvas.width - 50);
+          this.y = rand(50, canvas.height - 50);
+          this.size = rand(20, 60);
+          this.shape = choice(shapes);
+          this.color = choice(colors);
+          this.pattern = choice(["solid", "striped", "spotted", "gradient"]);
+          this.eyeShape = choice(eyeShapes);
+          this.eyeColor = choice(colors);
+          this.mouthShape = choice(mouthShapes);
+          this.mouthColor = choice(colors);
+          this.accessories = Array.from({ length: rInt(0, 4) }, () =>
+            choice(accessories)
+          );
+          this.rotation = rand(0, Math.PI * 2);
+          this.vx = rand(-1, 1);
+          this.vy = rand(-1, 1);
+        }
+        draw() {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+          this.drawBody();
+          this.drawEyes();
+          this.drawMouth();
+          this.drawAccessories();
+          ctx.restore();
+        }
+        drawBody() {
+          ctx.fillStyle = this.color;
+          if (this.pattern === "gradient") {
+            const grad = ctx.createLinearGradient(
+              -this.size,
+              -this.size,
+              this.size,
+              this.size
+            );
+            grad.addColorStop(0, this.color);
+            grad.addColorStop(1, choice(colors));
+            ctx.fillStyle = grad;
+          }
+          ctx.beginPath();
+          switch (this.shape) {
+            case "circle":
+              ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+              break;
+            case "square":
+              ctx.rect(-this.size, -this.size, this.size * 2, this.size * 2);
+              break;
+            case "triangle":
+              ctx.moveTo(0, -this.size);
+              ctx.lineTo(this.size, this.size);
+              ctx.lineTo(-this.size, this.size);
+              ctx.closePath();
+              break;
+            case "pentagon":
+              this.polygon(5);
+              break;
+            case "star":
+              this.star(5, this.size, this.size / 2);
+              break;
+            case "hexagon":
+              this.polygon(6);
+              break;
+            case "octagon":
+              this.polygon(8);
+              break;
+            case "blob":
+              this.blob();
+              break;
+          }
+          ctx.fill();
+        }
+        polygon(sides) {
+          const step = (Math.PI * 2) / sides;
+          ctx.moveTo(this.size, 0);
+          for (let i = 1; i < sides; i++) {
+            ctx.lineTo(
+              this.size * Math.cos(step * i),
+              this.size * Math.sin(step * i)
+            );
+          }
+          ctx.closePath();
+        }
+        star(points, outerRadius, innerRadius) {
+          const step = Math.PI / points;
+          ctx.moveTo(outerRadius, 0);
+          for (let i = 0; i < 2 * points; i++) {
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const angle = i * step;
+            ctx.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+          }
+          ctx.closePath();
+        }
+        blob() {
+          ctx.moveTo(this.size, 0);
+          for (let i = 0; i < Math.PI * 2; i += Math.PI / 4) {
+            const r = this.size + rand(-10, 10);
+            ctx.quadraticCurveTo(
+              Math.cos(i) * r,
+              Math.sin(i) * r,
+              Math.cos(i + Math.PI / 4) * r,
+              Math.sin(i + Math.PI / 4) * r
+            );
+          }
+          ctx.closePath();
+        }
+        drawEyes() {
+          ctx.fillStyle = this.eyeColor;
+          const eyeOffset = this.size / 2.5;
+          for (let side of [-1, 1]) {
+            ctx.beginPath();
+            switch (this.eyeShape) {
+              case "round":
+                ctx.arc(
+                  side * eyeOffset,
+                  -eyeOffset / 2,
+                  this.size / 6,
+                  0,
+                  Math.PI * 2
+                );
+                break;
+              case "oval":
+                ctx.ellipse(
+                  side * eyeOffset,
+                  -eyeOffset / 2,
+                  this.size / 8,
+                  this.size / 5,
+                  0,
+                  0,
+                  Math.PI * 2
+                );
+                break;
+              case "slit":
+                ctx.rect(
+                  side * eyeOffset - this.size / 12,
+                  -eyeOffset / 2 - this.size / 20,
+                  this.size / 6,
+                  this.size / 10
+                );
+                break;
+              case "cross":
+                ctx.moveTo(side * eyeOffset - 5, -eyeOffset / 2);
+                ctx.lineTo(side * eyeOffset + 5, -eyeOffset / 2);
+                ctx.moveTo(side * eyeOffset, -eyeOffset / 2 - 5);
+                ctx.lineTo(side * eyeOffset, -eyeOffset / 2 + 5);
+                break;
+              case "spiral":
+                this.drawSpiral(
+                  side * eyeOffset,
+                  -eyeOffset / 2,
+                  this.size / 6
+                );
+                break;
+              case "heart":
+                this.drawHeart(side * eyeOffset, -eyeOffset / 2, this.size / 8);
+                break;
+              case "square":
+                ctx.rect(
+                  side * eyeOffset - this.size / 12,
+                  -eyeOffset / 2 - this.size / 12,
+                  this.size / 6,
+                  this.size / 6
+                );
+                break;
+              case "triangle":
+                ctx.moveTo(side * eyeOffset, -eyeOffset / 2 - this.size / 10);
+                ctx.lineTo(
+                  side * eyeOffset + this.size / 12,
+                  -eyeOffset / 2 + this.size / 12
+                );
+                ctx.lineTo(
+                  side * eyeOffset - this.size / 12,
+                  -eyeOffset / 2 + this.size / 12
+                );
+                ctx.closePath();
+                break;
+            }
+            ctx.strokeStyle = "black";
+            ctx.stroke();
+            ctx.fill();
+          }
+        }
+        drawMouth() {
+          ctx.fillStyle = this.mouthColor;
+          ctx.beginPath();
+          switch (this.mouthShape) {
+            case "smile":
+              ctx.arc(0, this.size / 3, this.size / 4, 0, Math.PI);
+              break;
+            case "frown":
+              ctx.arc(0, this.size / 2, this.size / 4, Math.PI, 0);
+              break;
+            case "open":
+              ctx.ellipse(
+                0,
+                this.size / 3,
+                this.size / 6,
+                this.size / 4,
+                0,
+                0,
+                Math.PI * 2
+              );
+              break;
+            case "line":
+              ctx.rect(
+                -this.size / 4,
+                this.size / 3,
+                this.size / 2,
+                this.size / 20
+              );
+              break;
+            case "fangs":
+              ctx.moveTo(-this.size / 6, this.size / 3);
+              ctx.lineTo(0, this.size / 2);
+              ctx.lineTo(this.size / 6, this.size / 3);
+              break;
+            case "beak":
+              ctx.moveTo(-this.size / 6, this.size / 3);
+              ctx.lineTo(0, this.size / 2);
+              ctx.lineTo(this.size / 6, this.size / 3);
+              break;
+            case "o":
+              ctx.arc(0, this.size / 3, this.size / 8, 0, Math.PI * 2);
+              break;
+            case "zigzag":
+              for (
+                let i = -this.size / 4;
+                i < this.size / 4;
+                i += this.size / 8
+              ) {
+                ctx.lineTo(i, this.size / 3);
+                ctx.lineTo(i + this.size / 16, this.size / 3 + this.size / 10);
+              }
+              break;
+          }
+          ctx.fill();
+        }
+        drawAccessories() {
+          ctx.strokeStyle = "black";
+          ctx.lineWidth = 2;
+          for (let acc of this.accessories) {
+            ctx.beginPath();
+            switch (acc) {
+              case "hat":
+                ctx.rect(-this.size / 2, -this.size - 10, this.size, 10);
+                break;
+              case "glasses":
+                ctx.arc(
+                  -this.size / 3,
+                  -this.size / 4,
+                  this.size / 6,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.moveTo(this.size / 3, -this.size / 4);
+                ctx.arc(
+                  this.size / 3,
+                  -this.size / 4,
+                  this.size / 6,
+                  0,
+                  Math.PI * 2
+                );
+                ctx.moveTo(-this.size / 6, -this.size / 4);
+                ctx.lineTo(this.size / 6, -this.size / 4);
+                break;
+              case "mustache":
+                ctx.moveTo(-this.size / 4, this.size / 4);
+                ctx.lineTo(0, this.size / 6);
+                ctx.lineTo(this.size / 4, this.size / 4);
+                break;
+              case "bow":
+                ctx.moveTo(0, this.size / 3);
+                ctx.lineTo(-this.size / 4, this.size / 4);
+                ctx.lineTo(0, this.size / 5);
+                ctx.lineTo(this.size / 4, this.size / 4);
+                ctx.closePath();
+                break;
+              case "crown":
+                ctx.moveTo(-this.size / 2, -this.size);
+                ctx.lineTo(-this.size / 4, -this.size - 15);
+                ctx.lineTo(0, -this.size);
+                ctx.lineTo(this.size / 4, -this.size - 15);
+                ctx.lineTo(this.size / 2, -this.size);
+                break;
+              case "earrings":
+                ctx.arc(-this.size, 0, 5, 0, Math.PI * 2);
+                ctx.moveTo(this.size + 5, 0);
+                ctx.arc(this.size, 0, 5, 0, Math.PI * 2);
+                break;
+              case "scar":
+                ctx.moveTo(-this.size / 2, -this.size / 2);
+                ctx.lineTo(this.size / 2, this.size / 2);
+                break;
+              case "antenna":
+                ctx.moveTo(-this.size / 4, -this.size);
+                ctx.lineTo(-this.size / 4, -this.size - 20);
+                ctx.moveTo(this.size / 4, -this.size);
+                ctx.lineTo(this.size / 4, -this.size - 20);
+                break;
+              case "horns":
+                ctx.moveTo(-this.size / 4, -this.size);
+                ctx.lineTo(-this.size / 2, -this.size - 20);
+                ctx.moveTo(this.size / 4, -this.size);
+                ctx.lineTo(this.size / 2, -this.size - 20);
+                break;
+              case "cape":
+                ctx.moveTo(-this.size, this.size / 2);
+                ctx.lineTo(0, this.size + 20);
+                ctx.lineTo(this.size, this.size / 2);
+                break;
+              case "necklace":
+                ctx.arc(0, this.size / 2, this.size / 2, 0, Math.PI);
+                break;
+              case "belt":
+                ctx.rect(-this.size, 0, this.size * 2, 5);
+                break;
+            }
+            ctx.stroke();
+          }
+        }
+        drawSpiral(x, y, r) {
+          ctx.beginPath();
+          for (let i = 0; i < r * 4; i++) {
+            let angle = 0.1 * i;
+            let rad = r * (i / (r * 4));
+            ctx.lineTo(x + rad * Math.cos(angle), y + rad * Math.sin(angle));
+          }
+          ctx.stroke();
+        }
+        drawHeart(x, y, size) {
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.bezierCurveTo(
+            x,
+            y - size / 2,
+            x - size,
+            y - size / 2,
+            x - size,
+            y
+          );
+          ctx.bezierCurveTo(
+            x - size,
+            y + size / 2,
+            x,
+            y + size,
+            x,
+            y + size * 1.5
+          );
+          ctx.bezierCurveTo(x, y + size, x + size, y + size / 2, x + size, y);
+          ctx.bezierCurveTo(x + size, y - size / 2, x, y - size / 2, x, y);
+          ctx.fill();
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy;
+          if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+          if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+          this.rotation += 0.01;
+        }
+      }
+
+      const agents = Array.from({ length: 50 }, () => new Agent());
+
+      function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let a of agents) {
+          a.update();
+          a.draw();
+        }
+        requestAnimationFrame(loop);
+      }
+      loop();
+    </script>
+  </body>
+</html>
